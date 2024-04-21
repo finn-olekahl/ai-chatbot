@@ -12,6 +12,10 @@
   "dependencies": {
     "nuxt": "^3.11.2",
     "vue": "^3.4.21",
-    "vue-router": "^4.3.0"
+    "vue-router": "^4.3.0" ,   
+    "cookie-parser": "^1.4.6",
+    "express": "^4.18.2",
+    "firebase": "^10.7.2",
+    "firebase-admin": "^12.0.0"
   }
 }
