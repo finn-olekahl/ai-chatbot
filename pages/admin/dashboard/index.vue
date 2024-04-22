@@ -4,6 +4,11 @@
     <p>Account: <span>{{ user.providerData[0].email }}</span></p>
     <button @click="handleLogout">LOGOUT</button>
   </div>
+  <div class="content">
+    <button @click="this.$router.push('/admin/dashboard/guidelines')">GUIDELINES</button>
+    <button @click="this.$router.push('/admin/dashboard/settings')">SETTINGS</button>
+    <button @click="this.$router.push('/admin/dashboard/support')">SUPPORT PANEL</button>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -27,7 +32,6 @@ const handleLogout = async () => {
 
 <style scoped>
 .header-wrapper {
-  position: relative;
   display: flex;
   width: 100vw;
   height: 150px;
@@ -59,5 +63,26 @@ const handleLogout = async () => {
   border: none;
   padding: 10px 30px;
   border-radius: 999px;
+}
+
+.content {
+  padding-top: 50px;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.content > button {
+  width: 300px;
+  color: white;
+  background-color: black;
+  border: none;
+  padding: 10px 30px;
+  border-radius: 999px;
+}
+
+.content > button:not(:last-child) {
+  margin-bottom: 20px;
 }
 </style>
