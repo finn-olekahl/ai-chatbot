@@ -15,6 +15,15 @@
             <a href="#password-popup" class="key-icon" id="key-open"><i class="fas fa-key"></i></a>
           </header>
           <div class="chat-box" id="chat-box">
+            <div class="chat incoming typing-indicator" :id="typing_indicator_status">
+              <div class="details">
+                <div class="texting-div">
+                  <div class="typing typing-1"></div>
+                  <div class="typing typing-2"></div>
+                  <div class="typing typing-3"></div>
+                </div>
+              </div>
+            </div>
             <div v-for="message in messages">
               <div v-if="message.author == 'user'" class="chat outgoing">
                 <div class="details">
@@ -69,6 +78,7 @@ export default {
       ],
       message: '',
       isButtonDisabled: true,
+      typing_indicator_status: "disabled",
       assistantId: null
     };
   },
@@ -103,6 +113,7 @@ export default {
       this.isButtonDisabled = !this.message.trim();
     },
     async fetchResponse(_message) {
+      this.typing_indicator_status = "enabled"
       if (!this.assistantId) {
         console.error('Assistant ID is not set');
         return;
@@ -139,6 +150,7 @@ export default {
       } catch (error) {
         console.error('Failed to fetch response:', error);
       }
+      this.typing_indicator_status = "disabled"
     }
   },
 };
@@ -506,6 +518,14 @@ export default {
     box-shadow: 0 0 32px rgb(0 0 0 / 8%), 0 16px 16px -16px rgb(0 0 0 / 10%);
   }
 
+  .chat-box .chat .texting-div {
+    word-wrap: break-word;
+    border-radius: 25px 25px 25px 0px;
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+    box-shadow: 0 0 32px rgb(0 0 0 / 8%), 0 16px 16px -16px rgb(0 0 0 / 10%);
+  }
+
   .chat-box .outgoing {
     display: flex; 
   }
@@ -534,6 +554,13 @@ export default {
     background: white;
     color: #2c2c2c;
     border-radius: 25px 25px 25px 0;
+  }
+
+  .incoming .details > .texting-div {
+    background: white;
+    color: #2c2c2c;
+    border-radius: 25px 25px 25px 0;
+    padding: 10px;
   }
 
   .chat-area .typing-area {
@@ -601,5 +628,54 @@ export default {
     border-radius: 5px;
     margin-right: 10px;
   }
+
+  .typing {
+    display: inline-block;
+    width: 0.6rem;
+    height: 0.6rem;
+    margin-right: 0rem;
+    box-sizing: border-box;
+    background: #ccc;
+    border-radius: 50%;
+  }
+
+  .typing:not(:last-child) {
+    margin-right: 4px;
+  }
+
+  .typing.typing-1 {
+    animation: typing 2s infinite;
+  }
+
+  .typing.typing-2 {
+    animation: typing 2s 300ms infinite;
+  }
+
+  .typing.typing-3 {
+    animation: typing 2s 600ms infinite;
+  }
+
+  .typing-indicator {
+    transition: all 0.2s cubic-bezier(0,.5,.5,1);
+  }
+
+  #disabled.typing-indicator {
+    height: 0px !important;
+    margin: 0px !important;
+    opacity: 0 !important;
+  }
+
+  @keyframes typing {
+  	0%, 75%, 100% {
+  		transform: translate(0, 0.20rem) scale(0.7);
+  		opacity: 0.5;
+  	}
+	
+  	25% {
+  		transform: translate(0, -0.20rem) scale(1);
+  		opacity: 1;
+  	}
+  }
+
   </style>
   
