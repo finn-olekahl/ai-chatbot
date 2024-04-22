@@ -1,17 +1,17 @@
 import { firestoreAdmin } from '~/server/utils/firebase';
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 
 export default defineEventHandler(async (event) => {
-    try {      
-        let id = uuidv4();
-        const ref = firestoreAdmin.doc(`chats/${id}`);
+    try {     
         const data = await readBody(event);
+        let id = data.id ? data.id : crypto.randomBytes(5).toString('hex');
+        const ref = firestoreAdmin.doc(`chats/${id}`);
 
-        const docRef = await ref.set({
-            ...data,
+        await ref.set({
+            chatlog: data.chatlog,
             timestamp: new Date().toISOString()
-
-        })
+        });
+        
         return { result: id };
     } catch (error: any) {
         return { error: error.message }
