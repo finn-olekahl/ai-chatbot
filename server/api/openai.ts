@@ -1,10 +1,8 @@
 import OpenAI from "openai";
 const openai = new OpenAI();
 
-import type { SettingsMap } from "../../types";
-
-export default defineEventHandler(async (event) => {
-    const data: {standard: string, faq: SettingsMap} = await $fetch("/api/settings/get_prompt");
+export default defineEventHandler(async () => {
+    const data: any = await $fetch("/api/settings/get_prompt");
     
     let instructions: string = data.standard;
     instructions += "\n\n__FAQ__";
