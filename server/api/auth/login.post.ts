@@ -1,4 +1,5 @@
-import { getAuth } from "firebase-admin/auth";
+import { authAdmin } from "~/server/utils/firebase";
+
 
 
 export default defineEventHandler(async (event) => {
@@ -9,7 +10,7 @@ export default defineEventHandler(async (event) => {
   
   
   try {
-    const sessionCookie = await getAuth().createSessionCookie(firebaseIdToken, {expiresIn: config.public.authCookieExpires as number});
+    const sessionCookie = await authAdmin.createSessionCookie(firebaseIdToken, {expiresIn: config.public.authCookieExpires as number});
     
     
     setCookie(event, config.public.authCookieName as string, sessionCookie as string, {
@@ -20,16 +21,16 @@ export default defineEventHandler(async (event) => {
       path: "/",
     });
     
-    const token = await getAuth().verifySessionCookie(sessionCookie as string, true);
+    const token = await authAdmin.verifySessionCookie(sessionCookie as string, true);
 
     // ser custom claims
     // doc https://firebase.google.com/docs/auth/admin/custom-claims
-    await getAuth().setCustomUserClaims(token.uid, {
+    await authAdmin.setCustomUserClaims(token.uid, {
       admin: true,
       username: "admin",
     });
 
-    const user = await getAuth().getUser(token.uid);
+    const user = await authAdmin.getUser(token.uid);
     return { user };
 
   } catch (error) {

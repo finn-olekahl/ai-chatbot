@@ -33,7 +33,7 @@ export default defineComponent({
       <h1>Sign In.</h1>
       <input v-model="email" type="email" placeholder="E-mail" />
       <input v-model="password"  type="password" placeholder="Password" />
-      <button type="submit" class="sign-in-btn">Sign In</button>
+      <button type="submit" @click="login" class="sign-in-btn">Sign In</button>
     </div>
   </div>
 </template>

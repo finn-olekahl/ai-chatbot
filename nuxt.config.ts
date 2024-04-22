@@ -25,6 +25,11 @@ export default defineNuxtConfig({
       privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/gm, "\n"),
       databaseURL: process.env.FIREBASE_DATABASE_URL,
     },
+    mail : {
+      email: process.env.MAIL_EMAIL,
+      password: process.env.MAIL_PASSWORD
+    },
+
     // public config
     public: {
       authCookieName: "__session",
