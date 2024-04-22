@@ -54,44 +54,95 @@
       </div>
     </div>
   </template>
-  
-  <script>
-  export default {
-    data() {
-      return {
-        messages: [
-          {id: Date.now(), author: 'bot', content: 'Hallo, wie kann ich ihnen behilflich sein?'}
-        ],
-        message: '',
-        isButtonDisabled: true,
-      };
-    },
-    methods: {
-      sendMessage() {
-        if (this.message.trim() !== '') {
-          this.messages.unshift({
-            id: Date.now(),
-            author: 'user', 
-            content: this.message.trim(),
-          });
-          this.message = '';
-          this.isButtonDisabled = true;
 
-          setTimeout(() => {
-            this.messages.unshift({
-              id: Date.now(),
-              author: 'bot',
-              content: 'Hello World',
-            });
-          }, 1000);
-        }
-      },
-      handleInput() {
-        this.isButtonDisabled = !this.message.trim();
+<script>
+import OpenAI from "openai";
+const config = useRuntimeConfig();
+const openai = new OpenAI({ apiKey: config.public.openAi.apiKey, dangerouslyAllowBrowser: true });
+const thread = await openai.beta.threads.create();
+
+export default {
+  data() {
+    return {
+      messages: [
+        { id: Date.now(), author: 'bot', content: 'Hallo, wie kann ich dir behilflich sein?' }
+      ],
+      message: '',
+      isButtonDisabled: true,
+      assistantId: null
+    };
+  },
+  mounted() {
+    this.fetchAssistantId();
+  },
+  methods: {
+    async fetchAssistantId() {
+      const response = await fetch('/api/openai');
+      console.log(response);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      this.assistantId = data.assistant.id;
+    },
+    sendMessage() {
+      const trimmedMessage = this.message.trim();
+      if (trimmedMessage !== '') {
+        this.messages.unshift({
+          id: Date.now(),
+          author: 'user',
+          content: trimmedMessage,
+        });
+        this.message = '';
+        this.isButtonDisabled = true;
+
+        this.fetchResponse(trimmedMessage);
       }
     },
-  };
-  </script>
+    handleInput() {
+      this.isButtonDisabled = !this.message.trim();
+    },
+    async fetchResponse(_message) {
+      if (!this.assistantId) {
+        console.error('Assistant ID is not set');
+        return;
+      }
+
+      try {
+        const message = await openai.beta.threads.messages.create(
+          thread.id,
+          {
+            role: "user",
+            content: _message,
+          }
+        );
+
+        let run = await openai.beta.threads.runs.createAndPoll(
+          thread.id,
+          {
+            assistant_id: this.assistantId,
+          }
+        );
+
+        if (run.status === 'completed') {
+          const messages = await openai.beta.threads.messages.list(
+            run.thread_id
+          );
+          this.messages.unshift({
+            id: Date.now(),
+            author: 'bot',
+            content: messages.data[0].content[0].text.value,
+          });
+        } else {
+          console.log(run.status);
+        }
+      } catch (error) {
+        console.error('Failed to fetch response:', error);
+      }
+    }
+  },
+};
+</script>
   
   <style scoped>
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
