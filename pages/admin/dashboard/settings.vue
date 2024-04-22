@@ -1,16 +1,18 @@
 <template>
-    <h1>Settings</h1>
-    <p>Settings page</p>
+    <div class="header-wrapper-dashboard">
+        <h1>Settings</h1>
+    </div>
     <div>
-        <label for="standard-prompt">Standard prompt</label>
-        <textarea id="standard-prompt" v-model="standardPrompt"></textarea>
+        <label for="standard-prompt">Basic Instructions</label>
+        <textarea id="standard-prompt" v-model="basicInstructions"></textarea>
         <button @click="save">Save</button>
     </div>
+    <p>Specific Instructions</p>
     <table>
         <thead>
             <tr>
-                <th>Key</th>
-                <th>Value</th>
+                <th>Sample Question</th>
+                <th>Exact Answer</th>
                 <th></th>
             </tr>
         </thead>
@@ -39,7 +41,7 @@ definePageMeta({
     middleware: 'auth'
 })
 
-const standardPrompt = ref('');
+const basicInstructions = ref('');
 const componentKey = ref(0);
 let map: SettingsMap = reactive({});
 const newKey = ref('');
@@ -50,14 +52,14 @@ onMounted(async () => {
     if (prompt === null) {
         return;
     }
-    standardPrompt.value = prompt.standard;
+    basicInstructions.value = prompt.standard;
     map = prompt.faq;
 });
 
 const { getPrompt, updatePrompt } = useSettings();
 
 const save = async () => {
-    await updatePrompt(standardPrompt.value, map);
+    await updatePrompt(basicInstructions.value, map);
 };
 
 const addRow = () => {
