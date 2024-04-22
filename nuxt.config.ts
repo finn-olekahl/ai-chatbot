@@ -3,9 +3,18 @@ const ONE_DAY = 60 * 60 * 24 * 1000;
 const ONE_WEEK = ONE_DAY * 7;
 
 export default defineNuxtConfig({
+  app: {
+    head: {
+      link: [
+        { rel: 'stylesheet', type:"text/css", href: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css' },
+        { rel: 'stylesheet', href: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css' }
+      ],
+    }
+  },
   devtools: { enabled: true },
   routeRules: {
-    '/admin': { redirect: '/admin/dashboard'}
+    '/admin': { redirect: '/admin/dashboard'},
+    '/': { ssr: false }
   },
   runtimeConfig: {
 

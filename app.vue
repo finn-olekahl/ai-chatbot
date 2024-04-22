@@ -5,6 +5,6 @@
 <style>
   body {
     margin: 0;
-    padding-top: 100px;
+    padding: 0;
   }
 </style>

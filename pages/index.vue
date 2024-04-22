@@ -1,6 +1,6 @@
 <template>
-    <body id="chat-html">
-      <div class="background"></div>
+    <div class="background"></div>
+    <div class="body">
       <section class="container">
         <div class="chat-area">
           <header>
@@ -15,50 +15,22 @@
             <a href="#password-popup" class="key-icon" id="key-open"><i class="fas fa-key"></i></a>
           </header>
           <div class="chat-box" id="chat-box">
-            <div class="chat outgoing">
-              <div class="details">
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
+            <div v-for="message in messages">
+              <div v-if="message.author == 'user'" class="chat outgoing">
+                <div class="details">
+                  <p>{{ message.content }}</p>
+                </div>
               </div>
-            </div>
-            <div class="chat incoming">
-              <div class="details">
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
-              </div>
-            </div>
-            <div class="chat outgoing">
-              <div class="details">
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
-              </div>
-            </div>
-            <div class="chat incoming">
-              <div class="details">
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
-              </div>
-            </div>
-            <div class="chat outgoing">
-              <div class="details">
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
-              </div>
-            </div>
-            <div class="chat incoming">
-              <div class="details">
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
-              </div>
-            </div>
-            <div class="chat outgoing">
-              <div class="details">
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
-              </div>
-            </div>
-            <div class="chat incoming">
-              <div class="details">
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
+              <div v-else class="chat incoming">
+                <div class="details">
+                  <p>{{ message.content }}</p>
+                </div>
               </div>
             </div>
           </div>
           <form action="#" class="typing-area" autocomplete="off">
-            <input type="text" placeholder="Type something..." id="typing-input">
-            <button id="send-message" disabled="disabled"><i class="fas fa-location-arrow"></i></button>
+            <input type="text" placeholder="Type something..." id="typing-input" v-model="message" @input="handleInput">
+            <button id="send-message" :disabled="isButtonDisabled" @click="sendMessage"><i class="fas fa-location-arrow"></i></button>
           </form>
           <div class="error-message" id="error-message">
             <i class="fas fa-exclamation-circle"></i>
@@ -80,41 +52,46 @@
           </div>
         </section>
       </div>
-    </body>
+    </div>
   </template>
   
   <script>
-export default {
-  data() {
-    return {
-      messages: [],
-      message: '',
-    };
-  },
-  methods: {
-    
-    sendMessage() {
-      if (this.message.trim() !== '') {
-        this.messages.push({
-          id: Date.now(),
-          author: 'User',
-          content: this.message.trim(),
-        });
-        this.message = '';
-
-        // Simulate bot response
-        setTimeout(() => {
-          this.messages.push({
+  export default {
+    data() {
+      return {
+        messages: [
+          {id: Date.now(), author: 'bot', content: 'Hallo, wie kann ich ihnen behilflich sein?'}
+        ],
+        message: '',
+        isButtonDisabled: true,
+      };
+    },
+    methods: {
+      sendMessage() {
+        if (this.message.trim() !== '') {
+          this.messages.unshift({
             id: Date.now(),
-            author: 'Bot',
-            content: 'Hello World',
+            author: 'user', 
+            content: this.message.trim(),
           });
-        }, 1000);
+          this.message = '';
+          this.isButtonDisabled = true;
+
+          setTimeout(() => {
+            this.messages.unshift({
+              id: Date.now(),
+              author: 'bot',
+              content: 'Hello World',
+            });
+          }, 1000);
+        }
+      },
+      handleInput() {
+        this.isButtonDisabled = !this.message.trim();
       }
     },
-  },
-};
-</script>
+  };
+  </script>
   
   <style scoped>
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
@@ -141,11 +118,12 @@ export default {
     font-weight: 600;
   }
 
-  body {
+  .body {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
+    height: 100vh;
+    width: 100vw;
   }
 
   ::placeholder {
@@ -458,6 +436,8 @@ export default {
   }
 
   .chat-box {
+    display: flex;
+    flex-direction: column-reverse;
     height: 500px;
     overflow-y: auto;
     background: #f0f0f0;
