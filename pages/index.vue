@@ -6,7 +6,7 @@
           <header>
             <img id="avatar" alt="Avatar" src="../public/logo.webp">
             <div class="details">
-              <span>Customer Support</span>
+              <span>BUGBOT Timo</span>
               <div id="status-wrapper">
                 <div id="green-dot"></div>
                 <p>Active</p>
@@ -55,9 +55,9 @@
               <a class="close" href="#" id="key-close"><i class="fas fa-times"></i></a>
             </header>
             <div class="content">
-              <input id="convo-key" type="text" placeholder="Password">
+              <input v-model="chatId" id="convo-key" type="text" placeholder="Your key">
             </div>
-            <a href="#" class="submit" id="key-submit">Submit</a>
+            <a href="#" @click="loadSavedChat" class="submit" id="key-submit">Submit</a>
           </div>
         </section>
       </div>
@@ -70,16 +70,20 @@ const config = useRuntimeConfig();
 const openai = new OpenAI({ apiKey: config.public.openAi.apiKey, dangerouslyAllowBrowser: true });
 const thread = await openai.beta.threads.create();
 
+
+const { saveChat, loadChat } = useChat();
+
 export default {
   data() {
     return {
       messages: [
-        { id: Date.now(), author: 'bot', content: 'Hallo, wie kann ich dir behilflich sein?' }
+        { id: Date.now(), author: 'bot', content: 'Servus, ich bins der Timo 👋 Ich freue mich dir behilflich zu sein! Wie kann ich dir denn weiterhelfen?' }
       ],
       message: '',
       isButtonDisabled: true,
       typing_indicator_status: "disabled",
-      assistantId: null
+      assistantId: null,
+      chatId: null,
     };
   },
   mounted() {
@@ -95,7 +99,7 @@ export default {
       const data = await response.json();
       this.assistantId = data.assistant.id;
     },
-    sendMessage() {
+    async sendMessage(){
       const trimmedMessage = this.message.trim();
       if (trimmedMessage !== '') {
         this.messages.unshift({
@@ -107,6 +111,7 @@ export default {
         this.isButtonDisabled = true;
 
         this.fetchResponse(trimmedMessage);
+        this.chatId = await saveChat(this.messages, this.chatId);
       }
     },
     handleInput() {
@@ -144,6 +149,8 @@ export default {
             author: 'bot',
             content: messages.data[0].content[0].text.value,
           });
+
+          this.chatId = await saveChat(this.messages, this.chatId);
         } else {
           console.log(run.status);
         }
@@ -151,6 +158,13 @@ export default {
         console.error('Failed to fetch response:', error);
       }
       this.typing_indicator_status = "disabled"
+    },
+    async loadSavedChat() {
+      console.log('Loading chat with ID:', this.chatId);
+      const savedChat = await loadChat(this.chatId);
+      if (savedChat) {
+        this.messages = savedChat;
+      }
     }
   },
 };
@@ -212,7 +226,7 @@ export default {
     width: 100%;
     height: 100%;
     background-color: #f0f0f0;
-    background-image: url(https://images.unsplash.com/photo-1620121692029-d088224ddc74?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1632&q=80);
+    background-image: url('../public/background.webp');
     background-size: cover;
     background-repeat: no-repeat;
     filter: blur(0.5vh) brightness(80%);

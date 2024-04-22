@@ -43,8 +43,8 @@ export default defineNuxtConfig({
         appId: process.env.FIREBASE_APP_ID,
       },
       openAi: {
-      apiKey: process.env.OPENAI_API_KEY
-    },
+        apiKey: process.env.OPENAI_API_KEY
+      },
     },
   },
 })
