@@ -1,5 +1,3 @@
-
-
 export const useChat = () => {
 
     const saveChat = async (chatlog: [], id?: string) => {
