@@ -1,3 +1,16 @@
+<template>
+  <html>
+    <div class="login-container">
+      <div class="login-form">
+        <h1>SIGN IN.</h1>
+        <input v-model="email" type="email" placeholder="E-mail" />
+        <input v-model="password" type="password" placeholder="Password" />
+        <button type="submit" @click="login" class="sign-in-btn">Sign In</button>
+      </div>
+    </div>
+  </html>
+</template>
+
 <script lang="ts">
 import { defineComponent } from 'vue';
 
@@ -27,39 +40,28 @@ export default defineComponent({
 });
 </script>
 
-<template>
-  <div class="login-container">
-    <div class="login-form">
-      <h1>Sign In.</h1>
-      <input v-model="email" type="email" placeholder="E-mail" />
-      <input v-model="password"  type="password" placeholder="Password" />
-      <button type="submit" @click="login" class="sign-in-btn">Sign In</button>
-    </div>
-  </div>
-</template>
-
 <style scoped>
 .login-container {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-color: #1d1d1d;
 }
 .login-form {
   width: 300px;
-  padding: 20px;
-  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 h1 {
   margin-bottom: 20px;
 }
 .google-btn, .facebook-btn, .sign-in-btn {
-  width: 100%;
+  width: 300px;
   padding: 10px;
   margin-bottom: 10px;
   border: none;
-  border-radius: 5px;
+  border-radius: 999px;
   color: white;
   cursor: pointer;
 }
@@ -70,7 +72,7 @@ h1 {
   background-color: #3b5998;
 }
 .sign-in-btn {
-  background-color: #e91e63;
+  background-color: #007f51;
 }
 .divider {
   color: #999;
@@ -78,13 +80,13 @@ h1 {
   margin: 20px 0;
 }
 input[type="email"], input[type="password"] {
-  width: 100%;
-  padding: 10px;
+  width: 300px;
+  padding: 10px 20px;
   margin-bottom: 10px;
   border: none;
-  border-radius: 5px;
-  background-color: #333;
-  color: white;
+  border-radius: 999px;
+  background-color: #007f5044;
+  color: black;
 }
 .links {
   display: flex;
