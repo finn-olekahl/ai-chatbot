@@ -3,10 +3,12 @@
         <h1>Open Conversations</h1>
         <div class="spacer"></div>
         <div class="conversations-container">
-            <div class="conversation-element">
-                <h2>Reason reason reason reason reason reason reason reason reason</h2>
-                <p>last updated: 5 mins ago</p>
-                <p>ID: 3976732546</p>
+            <div v-for="data in chats" class="conversation-element">
+                <div @click="onClickChat(data.id)">
+                    <h2>{{ data.forward_reason }}</h2>
+                    <p>last updated: {{ calculateTimeDifference(data.timestamp) }}</p>
+                    <p>ID: {{ data.id }}</p>
+                </div>
             </div>
         </div>
     </div>
@@ -81,14 +83,27 @@
 </template>
 
 <script lang="ts">
+import type { Timestamp } from 'firebase-admin/firestore';
 import { serverTimestamp } from 'firebase/firestore';
+import type { Message } from '~/types';
 
 definePageMeta({
     middleware: 'auth'
 })
 
+let eventSource: EventSource | null = null;
+
 export default {
-    data() {
+    data(): {
+        messages: Message[],
+        message: string,
+        isButtonDisabled: boolean,
+        typing_indicator_status: string,
+        assistantId: string | null,
+        chatId: string | null,
+        forwarded: boolean,
+        chats: { chatlog: [], forwarded?: boolean, forward_reason?: string, timestamp: string, id: string }[]
+  }{
         return {
             messages: [],
             message: '',
@@ -97,17 +112,61 @@ export default {
             assistantId: null,
             chatId: null,
             forwarded: false,
+            chats: []
         };
+    },
+    mounted() {
+        this.getUnsolvedChats()
     },
     methods: {
         async getUnsolvedChats() {
             const response = await fetch('/api/support/get_forwarded');
-            console.log(response);
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
             const data = await response.json();
-            this.assistantId = data.assistant.id;
+            await data.forEach(async (id: string) => {
+                const IdData: { chatlog: [], forwarded?: boolean, forward_reason?: string, timestamp: string, id: string } = await $fetch("/api/db/get_support", {
+                    method: "POST",
+                    body: JSON.stringify({ id: id }),
+                });
+
+                IdData.id = id;
+
+                console.log(IdData);
+                this.chats.push(IdData)
+            });
+        },
+        calculateTimeDifference(dateString: string): string {
+            const pastDate = new Date(dateString);
+            const currentDate = new Date();
+            const difference = currentDate.getTime() - pastDate.getTime(); // difference in milliseconds
+
+            const minutes = Math.floor(difference / 60000);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+
+            if (minutes < 60) {
+                return `${minutes} minutes`;
+            } else if (hours < 24) {
+                return `${hours} hours`;
+            } else {
+                return `${days} days`;
+            }
+        },
+        onClickChat(id: string) {
+            this.chatId = id;
+            if (eventSource != null) {
+                eventSource.close()
+            }
+            this.startForwardStream()
+        },
+        async startForwardStream() {
+            eventSource = new EventSource(`/api/support/${this.chatId}`);
+            eventSource.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                this.messages = (data as { chatlog: [] }).chatlog;
+            }
         },
     }
 }
@@ -670,17 +729,21 @@ export default {
   }
 
   .side-menu > .conversations-container {
+    padding: 30px;
     width: 500px;
     display: flex;
     flex-direction: column;
   }
 
   .conversation-element {
-    margin: 30px;
     padding: 10px 20px;
     border-radius: 20px;
     box-shadow: 0 0 30px 0 rgba(0, 0, 0, 0.25);
     transition: all 0.2s ease;
+  }
+
+  .conversation-element:not(:last-child) {
+    margin-bottom: 20px;
   }
 
   .conversation-element:hover {
@@ -691,7 +754,7 @@ export default {
     transform: scale(1.0);
   }
 
-  .conversation-element > h2 {
+  .conversation-element > div > h2 {
     overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 1;
