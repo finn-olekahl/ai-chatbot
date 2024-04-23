@@ -30,6 +30,13 @@
                   <p>{{ message.content }}</p>
                 </div>
               </div>
+              <div v-else-if="message.author == 'forward'" class="chat forward">
+                <div class="details">
+                  <p>Möchtest du mit dem Kundensupport verbunden werden?</p>
+                  <button @click="forwardChat">Ja</button>
+                  <button @click="sendNoForwardMessage">Nein</button>
+                </div>
+              </div>
               <div v-else class="chat incoming">
                 <div class="details">
                   <p>{{ message.content }}</p>
@@ -64,14 +71,15 @@
     </div>
   </template>
 
-<script>
+<script lang="ts">
 import OpenAI from "openai";
 const config = useRuntimeConfig();
 const openai = new OpenAI({ apiKey: config.public.openAi.apiKey, dangerouslyAllowBrowser: true });
 const thread = await openai.beta.threads.create();
+let reason = null;
 
 
-const { saveChat, loadChat } = useChat();
+const { saveChat, saveUnsolvedChat, loadChat, forwardChat } = useChat();
 
 export default {
   data() {
@@ -114,6 +122,36 @@ export default {
         this.chatId = await saveChat(this.messages, this.chatId);
       }
     },
+    async sendNoForwardMessage() {
+      const noMessage = "Nein, will ich nicht.";
+
+      this.messages.shift();
+      this.messages.unshift({
+          id: Date.now(),
+          author: 'user',
+          content: noMessage,
+        });
+        this.message = '';
+        this.isButtonDisabled = true;
+
+        this.fetchResponse(noMessage);
+        this.chatId = await saveChat(this.messages, this.chatId);
+    },
+    async forwardChat() {
+      const message = "Ok, ich leite den Support an einen unserer Mitarbeiter weiter. Bitte warten habe einen Moment geduld."
+
+      this.messages.shift();
+      this.messages.unshift({
+          id: Date.now(),
+          author: 'bot',
+          content: message,
+        });
+
+        this.message = '';
+        this.isButtonDisabled = true;
+
+        this.chatId = await forwardChat(this.messages, this.chatId, reason);
+    },
     handleInput() {
       this.isButtonDisabled = !this.message.trim();
     },
@@ -125,7 +163,7 @@ export default {
       }
 
       try {
-        const message = await openai.beta.threads.messages.create(
+       await openai.beta.threads.messages.create(
           thread.id,
           {
             role: "user",
@@ -144,11 +182,19 @@ export default {
           const messages = await openai.beta.threads.messages.list(
             run.thread_id
           );
+
+
+          const cleanedMessage = this.checkForwardMessage(messages.data[0].content[0].text.value);
+
           this.messages.unshift({
             id: Date.now(),
             author: 'bot',
-            content: messages.data[0].content[0].text.value,
+            content: cleanedMessage ?? messages.data[0].content[0].text.value,
           });
+
+          if (cleanedMessage) {
+            this.sendForwardMessage();
+          }
 
           this.chatId = await saveChat(this.messages, this.chatId);
         } else {
@@ -158,6 +204,25 @@ export default {
         console.error('Failed to fetch response:', error);
       }
       this.typing_indicator_status = "disabled"
+    },
+    checkForwardMessage(message) {
+      console.log('Checking for forward message:', message);
+      if (message.includes('|||| [FORWARD_KUNDENSUPPORT] ')) {
+        reason = message.split('|||| [FORWARD_KUNDENSUPPORT] ')[1].trim();
+        return message.split('|||| [FORWARD_KUNDENSUPPORT] ')[0].trim();
+      }
+      return null;
+    },
+    async sendForwardMessage() {
+      if (!reason) return;
+
+      this.messages.unshift({
+          id: Date.now(),
+          author: 'forward',
+          content: 'FORWARD_KUNDENSUPPORT',
+      });
+
+      await saveUnsolvedChat(this.messages, this.chatId, reason);
     },
     async loadSavedChat() {
       console.log('Loading chat with ID:', this.chatId);
