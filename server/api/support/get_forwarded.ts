@@ -1,4 +1,3 @@
-import { DocumentData } from 'firebase-admin/firestore';
 import { firestoreAdmin } from '~/server/utils/firebase';
 
 export default defineEventHandler(async () => {

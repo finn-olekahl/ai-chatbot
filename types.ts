@@ -1,10 +1,16 @@
+import type { UserRecord } from "firebase-admin/auth";
 
-import { UserRecord } from "firebase-admin/lib/auth/user-record";
 
-export interface User extends UserRecord{
+export interface User extends UserRecord {
     username?: string;
 }
 
 export interface SettingsMap {
     [key: string]: string;
 }
+
+export interface Message {
+    id: number;
+    author: string;
+    content: string;
+  }

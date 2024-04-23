@@ -75,7 +75,8 @@
   </template>
 
 <script lang="ts">
-import { updateMetadata } from "firebase/storage";
+import type { TextContentBlock } from 'openai/resources/beta/threads/messages.mjs';
+import type { Message } from '../types';
 import OpenAI from "openai";
 const config = useRuntimeConfig();
 const openai = new OpenAI({ apiKey: config.public.openAi.apiKey, dangerouslyAllowBrowser: true });
@@ -87,7 +88,16 @@ let eventSource: EventSource | null = null;
 const { saveChat, saveUnsolvedChat, loadChat, forwardChat } = useChat();
 
 export default {
-  data() {
+  data(): {
+    messages: Message[],
+    message: string,
+    isButtonDisabled: boolean,
+    typing_indicator_status: string,
+    assistantId: string | null,
+    chatId: string | null,
+    forwarded: boolean,
+  
+  } {
     return {
       messages: [
         { id: Date.now(), author: 'bot', content: 'Servus, ich bins der Timo 👋 Ich freue mich dir behilflich zu sein! Wie kann ich dir denn weiterhelfen?' }
@@ -128,7 +138,7 @@ export default {
           this.fetchResponse(trimmedMessage);
         }
 
-        this.chatId = await saveChat(this.messages, this.chatId);
+        this.chatId = await saveChat(this.messages as Message[], this.chatId ?? undefined);
       }
     },
     async sendNoForwardMessage() {
@@ -144,7 +154,7 @@ export default {
         this.isButtonDisabled = true;
 
         this.fetchResponse(noMessage);
-        this.chatId = await saveChat(this.messages, this.chatId);
+        this.chatId = await saveChat(this.messages, this.chatId ?? undefined);
     },
     async forwardChat() {
       const message = "Ok, ich leite den Support an einen unserer Mitarbeiter weiter. Bitte warten habe einen Moment geduld."
@@ -159,7 +169,7 @@ export default {
         this.message = '';
         this.isButtonDisabled = true;
 
-        this.chatId = await forwardChat(this.messages, this.chatId, reason);
+        this.chatId = await forwardChat(this.messages, this.chatId!, reason ?? 'No reason provided');
         this.forwarded = true;
 
         await this.startForwardStream();
@@ -196,7 +206,7 @@ export default {
           );
 
 
-          const cleanedMessage = this.checkForwardMessage(messages.data[0].content[0].text.value);
+          const cleanedMessage = this.checkForwardMessage((messages.data[0].content[0] as TextContentBlock).text.value);
 
           this.messages.unshift({
             id: Date.now(),

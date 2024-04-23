@@ -1,12 +1,8 @@
-import type { UserRecord } from "firebase-admin/lib/auth/user-record";
+import type { UserRecord } from "firebase-admin/auth";
 import { useAuthUser } from "./useAuthUser";
 import {
-  GoogleAuthProvider,
   getIdToken,
-  inMemoryPersistence,
-  setPersistence,
   signInWithEmailAndPassword,
-  signInWithPopup,
 } from "firebase/auth";
 
 export const useAuth = () => {
