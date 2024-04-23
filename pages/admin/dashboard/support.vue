@@ -81,6 +81,8 @@
 </template>
 
 <script lang="ts">
+import { serverTimestamp } from 'firebase/firestore';
+
 definePageMeta({
     middleware: 'auth'
 })
@@ -88,9 +90,7 @@ definePageMeta({
 export default {
     data() {
         return {
-            messages: [
-                { id: Date.now(), author: 'bot', content: 'Servus, ich bins der Timo 👋 Ich freue mich dir behilflich zu sein! Wie kann ich dir denn weiterhelfen?' }
-            ],
+            messages: [],
             message: '',
             isButtonDisabled: true,
             typing_indicator_status: "disabled",
@@ -99,6 +99,17 @@ export default {
             forwarded: false,
         };
     },
+    methods: {
+        async getUnsolvedChats() {
+            const response = await fetch('/api/support/get_forwarded');
+            console.log(response);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            this.assistantId = data.assistant.id;
+        },
+    }
 }
 </script>
 
@@ -665,10 +676,19 @@ export default {
   }
 
   .conversation-element {
-    margin: 20px;
+    margin: 30px;
     padding: 10px 20px;
     border-radius: 20px;
     box-shadow: 0 0 30px 0 rgba(0, 0, 0, 0.25);
+    transition: all 0.2s ease;
+  }
+
+  .conversation-element:hover {
+    transform: scale(1.04);
+  }
+
+  .conversation-element:active:hover {
+    transform: scale(1.0);
   }
 
   .conversation-element > h2 {
