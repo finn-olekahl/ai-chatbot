@@ -211,14 +211,14 @@ export default {
           this.messages.unshift({
             id: Date.now(),
             author: 'bot',
-            content: cleanedMessage ?? messages.data[0].content[0].text.value,
+            content: cleanedMessage ?? (messages.data[0].content[0] as TextContentBlock).text.value,
           });
 
           if (cleanedMessage) {
             this.sendForwardMessage();
           }
 
-          this.chatId = await saveChat(this.messages, this.chatId);
+          this.chatId = await saveChat(this.messages, this.chatId ?? undefined);
         } else {
           console.log(run.status);
         }
@@ -244,10 +244,11 @@ export default {
           content: 'FORWARD_KUNDENSUPPORT',
       });
 
-      await saveUnsolvedChat(this.messages, this.chatId, reason);
+      await saveUnsolvedChat(this.messages, this.chatId!, reason);
     },
     async loadSavedChat() {
       console.log('Loading chat with ID:', this.chatId);
+      if (this.chatId == null) return;
       const savedChat = await loadChat(this.chatId);
       if (saveChat == null) return;
       
