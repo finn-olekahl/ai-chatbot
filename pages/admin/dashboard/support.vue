@@ -1,6 +1,6 @@
 <template>
     <div class="header-wrapper-dashboard">
-        <h1>Support</h1>
+        <h1><button class="goback-btn" @click="$router.push('/admin/dashboard')"><i class="fas fa-arrow-left"></i></button>Support</h1>
     </div>
 </template>
 
