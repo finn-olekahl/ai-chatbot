@@ -7,10 +7,17 @@ export default defineEventHandler(async (event) => {
         let id = data.id ? data.id : crypto.randomBytes(5).toString('hex');
         const ref = firestoreAdmin.doc(`chats/${id}`);
 
-        await ref.set({
-            chatlog: data.chatlog,
-            timestamp: new Date().toISOString()
-        });
+        if (data.id) {
+            await ref.update({
+                chatlog: data.chatlog,
+                timestamp: new Date().toISOString()
+            });
+        } else {
+            await ref.set({
+                chatlog: data.chatlog,
+                timestamp: new Date().toISOString()
+            });
+        }
         
         return { result: id };
     } catch (error: any) {
