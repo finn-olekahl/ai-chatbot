@@ -2,7 +2,7 @@ import OpenAI from "openai";
 const openai = new OpenAI();
 
 export default defineEventHandler(async () => {
-    const data: any = await $fetch("/api/settings/get_prompt");
+    const data: any = await $fetch("/api/settings/get_instructions");
     
     let instructions: string = data.standard;
     instructions += "\n\n__FAQ__";

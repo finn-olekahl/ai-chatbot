@@ -1,8 +1,8 @@
 export const useSettings = () => {
 
-    const getPrompt = async () => {
+    const getInstructions = async () => {
         try {
-            const data: {standard: string, faq: {}} = await $fetch("/api/settings/get_prompt");
+            const data: {standard: string, faq: {}} = await $fetch("/api/settings/get_instructions");
             return data;
         } catch (error) {
             console.log(error);
@@ -10,9 +10,9 @@ export const useSettings = () => {
         }
     }
 
-    const updatePrompt = async (standard: string, faq: {}) => {
+    const updateInstructions = async (standard: string, faq: {}) => {
         try {
-            const data: { result: string } = await $fetch("/api/settings/update_prompt", {
+            const data: { result: string } = await $fetch("/api/settings/update_instructions", {
                 method: "POST",
                 body: JSON.stringify({ standard: standard, faq: faq }),
             });
@@ -24,5 +24,5 @@ export const useSettings = () => {
         }
     };
 
-    return { getPrompt, updatePrompt };
+    return { getInstructions, updateInstructions };
 }

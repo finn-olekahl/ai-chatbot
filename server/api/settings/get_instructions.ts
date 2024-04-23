@@ -1,6 +1,6 @@
 export default defineEventHandler(async () => { 
     try {      
-        const ref = firestoreAdmin.doc(`settings/prompt`);
+        const ref = firestoreAdmin.doc(`settings/instructions`);
         const snapshot = await ref.get();
         const data = snapshot.data();
         return data;
