@@ -51,7 +51,7 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
-import type { SettingsMap } from "../../../types";
+import type { SettingsMap } from "~/types";
 
 definePageMeta({
     middleware: 'auth'

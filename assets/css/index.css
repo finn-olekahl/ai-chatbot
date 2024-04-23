@@ -1,179 +1,4 @@
-<template>
-    <div class="side-menu">
-        <h1>Open Conversations</h1>
-        <div class="spacer"></div>
-        <div class="conversations-container">
-            <div v-for="data in chats" class="conversation-element">
-                <div @click="onClickChat(data.id)">
-                    <h2>{{ data.forward_reason }}</h2>
-                    <p>last updated: {{ calculateTimeDifference(data.timestamp) }}</p>
-                    <p>ID: {{ data.id }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="background"></div>
-    <div class="header-wrapper-dashboard">
-        <div class="white-bg-title"></div>
-        <h1><button class="goback-btn" @click="$router.push('/admin/dashboard')"><i class="fas fa-arrow-left"></i></button>Support</h1>
-    </div>
-    <div class="body">
-    <section class="container">
-        <div class="chat-area">
-        <header>
-            <div class="details">
-            <span>Reason</span>
-            </div>
-        </header>
-        <div class="chat-box" id="chat-box">
-            <div class="chat incoming typing-indicator" :id="typing_indicator_status">
-            <div class="details">
-                <div class="texting-div">
-                <div class="typing typing-1"></div>
-                <div class="typing typing-2"></div>
-                <div class="typing typing-3"></div>
-                </div>
-            </div>
-            </div>
-            <div v-for="message in messages">
-            <div v-if="message.author == 'user'" class="chat outgoing">
-                <div class="details">
-                <p>{{ message.content }}</p>
-                </div>
-            </div>
-            <div v-else-if="message.author == 'forward'" class="chat forward">
-                <div class="details">
-                <p>Möchtest du mit dem Kundensupport verbunden werden?</p>
-                <button @click="forwardChat">Ja</button>
-                <button @click="sendNoForwardMessage">Nein</button>
-                </div>
-            </div>
-            <div v-else class="chat incoming">
-                <div class="details">
-                <p>{{ message.content }}</p>
-                </div>
-            </div>
-            </div>
-        </div>
-        <form action="#" class="typing-area" autocomplete="off">
-            <input type="text" placeholder="Type something..." id="typing-input" v-model="message" @input="handleInput">
-            <button id="send-message" :disabled="isButtonDisabled" @click="sendMessage"><i class="fas fa-location-arrow"></i></button>
-        </form>
-        <div class="error-message" id="error-message">
-            <i class="fas fa-exclamation-circle"></i>
-            <perror id="error-message-text">This is an Error! Please change the text of this message according to which error occured.</perror>
-        </div>
-        </div>
-    </section>
-    <div id="password-popup" class="overlay">
-        <section class="popup-container">
-        <div class="popup">
-            <header>
-            <h2>Convo Key</h2>
-            <a class="close" href="#" id="key-close"><i class="fas fa-times"></i></a>
-            </header>
-            <div class="content">
-            <input v-model="chatId" id="convo-key" type="text" placeholder="Your key">
-            </div>
-            <a href="#" @click="loadSavedChat" class="submit" id="key-submit">Submit</a>
-        </div>
-        </section>
-    </div>
-    </div> 
-</template>
-
-<script lang="ts">
-import type { Timestamp } from 'firebase-admin/firestore';
-import { serverTimestamp } from 'firebase/firestore';
-import type { Message } from '~/types';
-
-definePageMeta({
-    middleware: 'auth'
-})
-
-let eventSource: EventSource | null = null;
-
-export default {
-    data(): {
-        messages: Message[],
-        message: string,
-        isButtonDisabled: boolean,
-        typing_indicator_status: string,
-        assistantId: string | null,
-        chatId: string | null,
-        forwarded: boolean,
-        chats: { chatlog: [], forwarded?: boolean, forward_reason?: string, timestamp: string, id: string }[]
-  }{
-        return {
-            messages: [],
-            message: '',
-            isButtonDisabled: true,
-            typing_indicator_status: "disabled",
-            assistantId: null,
-            chatId: null,
-            forwarded: false,
-            chats: []
-        };
-    },
-    mounted() {
-        this.getUnsolvedChats()
-    },
-    methods: {
-        async getUnsolvedChats() {
-            const response = await fetch('/api/support/get_forwarded');
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            const data = await response.json();
-            await data.forEach(async (id: string) => {
-                const IdData: { chatlog: [], forwarded?: boolean, forward_reason?: string, timestamp: string, id: string } = await $fetch("/api/db/get_support", {
-                    method: "POST",
-                    body: JSON.stringify({ id: id }),
-                });
-
-                IdData.id = id;
-
-                console.log(IdData);
-                this.chats.push(IdData)
-            });
-        },
-        calculateTimeDifference(dateString: string): string {
-            const pastDate = new Date(dateString);
-            const currentDate = new Date();
-            const difference = currentDate.getTime() - pastDate.getTime(); // difference in milliseconds
-
-            const minutes = Math.floor(difference / 60000);
-            const hours = Math.floor(minutes / 60);
-            const days = Math.floor(hours / 24);
-
-            if (minutes < 60) {
-                return `${minutes} minutes`;
-            } else if (hours < 24) {
-                return `${hours} hours`;
-            } else {
-                return `${days} days`;
-            }
-        },
-        onClickChat(id: string) {
-            this.chatId = id;
-            if (eventSource != null) {
-                eventSource.close()
-            }
-            this.startForwardStream()
-        },
-        async startForwardStream() {
-            eventSource = new EventSource(`/api/support/${this.chatId}`);
-            eventSource.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                this.messages = (data as { chatlog: [] }).chatlog;
-            }
-        },
-    }
-}
-</script>
-
-<style>
- @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
   @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap');
 
   * {
@@ -182,14 +7,6 @@ export default {
     box-sizing: border-box;
     text-decoration: none;
     font-family: Poppins, sans-serif, FontAwesome;
-  }
-
-  .white-bg-title {
-    background-color: white;
-    position: absolute;
-    height: 100px;
-    width: 450px;
-    border-radius: 30px;
   }
 
   /* || GENERAL STYLES */
@@ -206,15 +23,11 @@ export default {
   }
 
   .body {
-    position: absolute;
     display: flex;
     align-items: center;
     justify-content: center;
+    height: 100vh;
     width: 100vw;
-    top: 0;
-    bottom: 0;
-    margin-top: auto;
-    margin-bottom: auto;
   }
 
   ::placeholder {
@@ -240,9 +53,9 @@ export default {
     width: 100%;
     height: 100%;
     background-color: #f0f0f0;
+    background-image: url('~/public/background.webp');
     background-size: cover;
     background-repeat: no-repeat;
-    background-image: url('~/public/background-support.webp');
     filter: blur(0.5vh) brightness(80%);
     transform: scale(1.2);
   }
@@ -701,67 +514,6 @@ export default {
     opacity: 0 !important;
   }
 
-  .side-menu {
-    position: absolute;
-    background-color: white;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: calc(100vw - 500px);
-    box-shadow: 0 0 100px 0 rgba(0, 0, 0, 0.3);
-    z-index: 999;
-  }
-
-  .side-menu > h1 {
-    width: 500px;
-    text-align: center;
-    margin: 0;
-    margin-top: 20px;
-    padding: 0;
-    font-weight: 600;
-  }
-
-  .side-menu > .spacer {
-    margin-top: 17px;
-    height: 4px;
-    width: 500px;
-    background-color: #007f5075;
-  }
-
-  .side-menu > .conversations-container {
-    padding: 30px;
-    width: 500px;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .conversation-element {
-    padding: 10px 20px;
-    border-radius: 20px;
-    box-shadow: 0 0 30px 0 rgba(0, 0, 0, 0.25);
-    transition: all 0.2s ease;
-  }
-
-  .conversation-element:not(:last-child) {
-    margin-bottom: 20px;
-  }
-
-  .conversation-element:hover {
-    transform: scale(1.04);
-  }
-
-  .conversation-element:active:hover {
-    transform: scale(1.0);
-  }
-
-  .conversation-element > div > h2 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    line-clamp: 1; 
-    -webkit-box-orient: vertical;
-  }
-
   @keyframes typing {
   	0%, 75%, 100% {
   		transform: translate(0, 0.20rem) scale(0.7);
@@ -773,4 +525,3 @@ export default {
   		opacity: 1;
   	}
   }
-</style>

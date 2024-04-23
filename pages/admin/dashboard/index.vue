@@ -4,7 +4,7 @@
     <button class="signout-btn" @click="handleLogout">LOGOUT</button>
   </div>
   <div class="sub-header-wrapper-dashboard">
-    <p>Account: <span>{{ user.providerData[0].email }}</span></p>
+    <p>Account: <span>{{ user?.providerData[0].email }}</span></p>
   </div>
   <div class="content-dashboard">
     <button @click="$router.push('/admin/dashboard/guidelines')">GUIDELINES</button>
