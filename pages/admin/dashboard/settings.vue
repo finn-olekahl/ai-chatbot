@@ -1,35 +1,45 @@
 <template>
     <div class="content-wrapper">
         <div class="header-wrapper-dashboard">
-            <h1>Settings</h1>
+            <h1><button class="goback-btn" @click="$router.push('/admin/dashboard')"><i class="fas fa-arrow-left"></i></button>Settings</h1>
         </div>
         <div class="basic-instructions-wrapper">
-            <h5>Basic Instructions</h5>
-            <p class="sub">You can enter the basic instructions for the Assistant to follow. This should not include specific answers to given questions, those can be added in the specific instructions below.</p>
+            <div class="title-wrapper">
+                <h5>Basic Instructions</h5>
+                <p class="sub">You can enter the basic instructions for the Assistant to follow. This should not include specific answers to given questions, those can be added in the specific instructions below.</p>
+            </div>
             <textarea id="basic-instructions" v-model="basicInstructions"></textarea>
         </div>
         <div class="specific-instructions-wrapper">
-            <h5>Specific Instructions</h5>
-            <p class="sub"></p>
-            <table>
+            <div class="title-wrapper">
+                <h5>Specific Instructions</h5>
+                <p class="sub">You can enter specific instructions here, including standard answers for specific or similar questions.</p>
+            </div>
+            <table class="instruction-table">
                 <thead>
                     <tr>
                         <th>Sample Question</th>
+                        <div class="spacer"></div>
                         <th>Exact Answer</th>
+                        <div class="spacer"></div>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-for="(value, key, index) in map" :key="index">
                         <td><input :key="componentKey" :value="key" @input="updateKey(index, ($event.target as HTMLInputElement)?.value)" /></td>
+                        <div class="spacer"></div>
                         <td><input v-model="map[key]" /></td>
-                        <td><button @click="deleteRow(key as string)">Delete</button></td>
+                        <div class="spacer"></div>
+                        <td><button class="delete-btn" @click="deleteRow(key as string)">Delete</button></td>
                     </tr>
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td><input v-model="newKey" /></td>
+                        <td><input class="left" v-model="newKey" /></td>
+                        <div class="spacer"></div>
                         <td><input v-model="newValue" /></td>
+                        <div class="spacer"></div>
                         <td><button @click="addRow">Add</button></td>
                     </tr>
                 </tfoot>
@@ -125,13 +135,23 @@ const updateKey = (index: number, newKey: string) => {
 }
 
 #save-btn {
-    margin-top: 30px;
-  width: 300px;
-  color: white;
-  background-color: #007f51;
-  border: none;
-  padding: 10px 30px;
-  border-radius: 999px;
+    margin-top: 20px;
+    margin-bottom: 150px;
+    width: 50vw;
+    color: white;
+    background-color: #007f51;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 999px;
+    transition: all 0.15s ease;
+}
+
+#save-btn:hover {
+    transform: scale(1.02);
+}
+
+#save-btn:active:hover {
+    transform: scale(1.0);
 }
 
 h5 {
@@ -143,7 +163,6 @@ h5 {
 
 p {
     width: 50%;
-    text-align: center;
     font-size: 12px;
     opacity: 0.6    ;
     margin-bottom: 25px;
@@ -155,11 +174,56 @@ p {
     resize: none;
     padding: 20px;
     border-radius: 20px;
-    border-color: #007f51;
+    box-shadow: inset 0px 0px 0px 2px #007f51;
     scrollbar-width: 0px;
+    border: none;
 }
 
 #basic-instructions::-webkit-scrollbar {
     display: none;
+}
+
+.title-wrapper {
+    width: 96%;
+}
+
+.instruction-table {
+    width: 100%;
+}
+
+td > input {
+    width: 100%;
+    padding: 10px 30px;
+    border-radius: 999px;
+    border: none;
+    box-shadow: inset 0px 0px 0px 2px #007f51;
+}
+td > button {
+    width: 100%;
+    color: white;
+    background-color: black;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 999px;
+}
+
+td > .delete-btn {
+    color: white;
+    background-color: rgb(154, 0, 0);
+}
+
+.spacer {
+    width: 5px;
+}
+
+th {
+    padding-left: 10px;
+    padding-bottom: 5px;
+    padding-top: 20px;
+    text-align: left;
+}
+
+td {
+    padding-top: 10px;
 }
 </style>

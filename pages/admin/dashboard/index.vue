@@ -1,15 +1,15 @@
 <template>
   <div class="header-wrapper-dashboard">
     <h1>Admin Dashboard</h1>
-    <button @click="handleLogout">LOGOUT</button>
+    <button class="signout-btn" @click="handleLogout">LOGOUT</button>
   </div>
   <div class="sub-header-wrapper-dashboard">
     <p>Account: <span>{{ user.providerData[0].email }}</span></p>
   </div>
   <div class="content-dashboard">
-    <button @click="this.$router.push('/admin/dashboard/guidelines')">GUIDELINES</button>
-    <button @click="this.$router.push('/admin/dashboard/settings')">SETTINGS</button>
-    <button @click="this.$router.push('/admin/dashboard/support')">SUPPORT PANEL</button>
+    <button @click="$router.push('/admin/dashboard/guidelines')">GUIDELINES</button>
+    <button @click="$router.push('/admin/dashboard/settings')">SETTINGS</button>
+    <button @click="$router.push('/admin/dashboard/support')">SUPPORT PANEL</button>
   </div>
 </template>
 
@@ -42,6 +42,10 @@ const handleLogout = async () => {
   flex-direction: column;
 }
 
+.header-wrapper-dashboard > a {
+  color: black;
+}
+
 .sub-header-wrapper-dashboard {
   display: flex;
   width: 100vw;
@@ -66,7 +70,7 @@ const handleLogout = async () => {
   color: #007f51;
 }
 
-.header-wrapper-dashboard > button {
+.header-wrapper-dashboard > .signout-btn {
   position: absolute;
   top: 20px;
   right: 20px;
@@ -75,6 +79,37 @@ const handleLogout = async () => {
   border: none;
   padding: 10px 30px;
   border-radius: 999px;
+}
+
+.header-wrapper-dashboard > h1 {
+  position: relative;
+}
+
+.header-wrapper-dashboard > h1 > .goback-btn {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -50px;
+  margin-top: auto;
+  margin-bottom: auto;
+  height: 30px;
+  width: 30px;
+  border-radius: 999px;
+  border: none;
+  background-color: rgb(175, 133, 255);
+  transition: all 0.15s ease;
+}
+
+.header-wrapper-dashboard > h1 > .goback-btn:hover {
+  transform: scale(1.1);
+}
+
+.header-wrapper-dashboard > h1 > .goback-btn:active:hover {
+  transform: scale(1.0);
+}
+
+.header-wrapper-dashboard > h1 > .goback-btn > i {
+  color: white
 }
 
 .content-dashboard {
