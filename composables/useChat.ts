@@ -30,12 +30,12 @@ export const useChat = () => {
 
     const loadChat = async (id: string) => {
         try {
-            const data: { chatlog: [] } = await $fetch("/api/db/get_support", {
+            const data: { chatlog: [], forwarded?: boolean } = await $fetch("/api/db/get_support", {
                 method: "POST",
                 body: JSON.stringify({ id: id }),
             });
 
-            return data.chatlog;
+            return data;
         } catch (error) {
             console.log(error);
             return null;
