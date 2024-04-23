@@ -8,6 +8,7 @@ export default defineEventHandler(async (event) => {
         const ref = firestoreAdmin.doc(`chats/${id}`);
 
         await ref.set({
+            id: id,
             chatlog: data.chatlog,
             timestamp: new Date().toISOString()
         });
