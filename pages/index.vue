@@ -4,11 +4,14 @@
       <section class="container">
         <div class="chat-area">
           <header>
-            <img id="avatar" alt="Avatar" src="../public/logo.webp">
+            <img v-if="forwarded" id="avatar" alt="Avatar" src="../public/logo_support.png">
+            <img v-else="forwarded" id="avatar" alt="Avatar" src="../public/logo.webp">
             <div class="details">
-              <span>BUGBOT Timo</span>
+              <span v-if="forwarded">BUGLAND Support</span>
+              <span v-else="forwarded">BUGBOT Timo</span>
               <div id="status-wrapper">
-                <div id="green-dot"></div>
+                <div v-if="forwarded"id="purple-dot"></div>
+                <div v-else="forwarded"id="green-dot"></div>
                 <p>Active</p>
               </div>
             </div>
@@ -72,11 +75,13 @@
   </template>
 
 <script lang="ts">
+import { updateMetadata } from "firebase/storage";
 import OpenAI from "openai";
 const config = useRuntimeConfig();
 const openai = new OpenAI({ apiKey: config.public.openAi.apiKey, dangerouslyAllowBrowser: true });
 const thread = await openai.beta.threads.create();
-let reason = null;
+let reason: string | null = null;
+let eventSource: EventSource | null = null;
 
 
 const { saveChat, saveUnsolvedChat, loadChat, forwardChat } = useChat();
@@ -92,6 +97,7 @@ export default {
       typing_indicator_status: "disabled",
       assistantId: null,
       chatId: null,
+      forwarded: false,
     };
   },
   mounted() {
@@ -118,7 +124,10 @@ export default {
         this.message = '';
         this.isButtonDisabled = true;
 
-        this.fetchResponse(trimmedMessage);
+        if (!this.forwarded) {
+          this.fetchResponse(trimmedMessage);
+        }
+
         this.chatId = await saveChat(this.messages, this.chatId);
       }
     },
@@ -151,11 +160,14 @@ export default {
         this.isButtonDisabled = true;
 
         this.chatId = await forwardChat(this.messages, this.chatId, reason);
+        this.forwarded = true;
+
+        await this.startForwardStream();
     },
     handleInput() {
       this.isButtonDisabled = !this.message.trim();
     },
-    async fetchResponse(_message) {
+    async fetchResponse(_message: string) {
       this.typing_indicator_status = "enabled"
       if (!this.assistantId) {
         console.error('Assistant ID is not set');
@@ -205,7 +217,7 @@ export default {
       }
       this.typing_indicator_status = "disabled"
     },
-    checkForwardMessage(message) {
+    checkForwardMessage(message: string) {
       console.log('Checking for forward message:', message);
       if (message.includes('|||| [FORWARD_KUNDENSUPPORT] ')) {
         reason = message.split('|||| [FORWARD_KUNDENSUPPORT] ')[1].trim();
@@ -227,10 +239,29 @@ export default {
     async loadSavedChat() {
       console.log('Loading chat with ID:', this.chatId);
       const savedChat = await loadChat(this.chatId);
-      if (savedChat) {
-        this.messages = savedChat;
+      if (saveChat == null) return;
+      
+      if (eventSource != null) {
+        (eventSource as EventSource).close();
       }
-    }
+
+      if ((savedChat as {chatlog: [], forwarded: boolean}).chatlog) {
+        this.messages = (savedChat as {chatlog: [], forwarded: boolean}).chatlog;
+        this.forwarded = (savedChat as {chatlog: [], forwarded: boolean}).forwarded ?? false;
+        await this.startForwardStream();
+      }
+    },
+    updateData(data: {chatlog: [], forwarded: boolean}) {
+      this.messages = data.chatlog;
+      this.forwarded = data.forwarded;
+    },
+    async startForwardStream() {
+      eventSource = new EventSource(`/api/support/${this.chatId}`);
+      eventSource.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        this.messages = (data as {chatlog: []}).chatlog;
+      }
+    },
   },
 };
 </script>
@@ -704,6 +735,14 @@ export default {
     width: 10px;
     height: 10px;
     background-color: lightgreen;
+    border-radius: 5px;
+    margin-right: 10px;
+  }
+
+  #purple-dot {
+    width: 10px;
+    height: 10px;
+    background-color: purple;
     border-radius: 5px;
     margin-right: 10px;
   }

@@ -1,3 +1,5 @@
+import { firestoreAdmin } from '~/server/utils/firebase';
+
 export default defineEventHandler(async () => { 
     try {      
         const ref = firestoreAdmin.doc(`settings/instructions`);
