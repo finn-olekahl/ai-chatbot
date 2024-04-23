@@ -5,9 +5,9 @@ export default defineEventHandler(async () => {
     const chatRef = firestoreAdmin.collection('chats');
     const forwardedChatsSnapshot = await chatRef.where('forwarded', '==', true).get();
 
-    const forwardedChats: DocumentData[] = [];
+    const forwardedChats: string[] = [];
     forwardedChatsSnapshot.forEach(doc => {
-        forwardedChats.push(doc.data());
+        forwardedChats.push(doc.id);
     });
 
     return forwardedChats;

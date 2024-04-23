@@ -7,7 +7,6 @@ export default defineEventHandler(async (event) => {
 
         const ref = firestoreAdmin.doc(`chats/${id}`);
         await ref.set({
-            id: id,
             forwarded: true,
             forward_reason: data.reason,
             chatlog: data.chatlog,
