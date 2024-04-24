@@ -142,7 +142,7 @@ export default {
             }
             const data = await response.json();
             await data.forEach(async (id: string) => {
-                const IdData: { chatlog: [], timestamp: string, id: string, forwarded?: boolean, forward_reason?: string } = await $fetch("/api/db/get_support", {
+                const IdData: { chatlog: [], timestamp: string, id: string, forwarded?: boolean, forward_reason?: string } = await $fetch("/api/support/get_support", {
                     method: "POST",
                     body: JSON.stringify({ id: id }),
                 });

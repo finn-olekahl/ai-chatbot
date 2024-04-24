@@ -262,9 +262,9 @@ export default {
         (eventSource as EventSource).close();
       }
 
-      if ((savedChat as {chatlog: [], forwarded: boolean, forward_reason: string }).chatlog) {
-        this.messages = (savedChat as {chatlog: [], forwarded: boolean, forward_reason: string }).chatlog;
-        this.forwarded = (savedChat as {chatlog: [], forwarded: boolean, forward_reason: string }).forwarded ?? false;
+      if ((savedChat as {chatlog: [], forwarded: boolean }).chatlog) {
+        this.messages = (savedChat as {chatlog: [], forwarded: boolean }).chatlog;
+        this.forwarded = (savedChat as {chatlog: [], forwarded: boolean}).forwarded ?? false;
         await this.startForwardStream();
       }
     },

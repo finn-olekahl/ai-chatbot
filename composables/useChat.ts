@@ -4,7 +4,7 @@ export const useChat = () => {
 
     const saveChat = async (chatlog: Message[], id?: string) => {
         try {
-            const data: { result: string } = await $fetch("/api/db/save_support", {
+            const data: { result: string } = await $fetch("/api/support/save_support", {
                 method: "POST",
                 body: JSON.stringify({ chatlog: chatlog, id: id}),
             });
@@ -18,7 +18,7 @@ export const useChat = () => {
 
     const saveUnsolvedChat = async (chatlog: Message[], id: string, reason: string) => {
         try {
-            const data: { result: string } = await $fetch("/api/db/save_unsolved", {
+            const data: { result: string } = await $fetch("/api/support/save_unsolved", {
                 method: "POST",
                 body: JSON.stringify({ chatlog: chatlog, id: id, reason: reason }),
             });
@@ -32,7 +32,7 @@ export const useChat = () => {
 
     const loadChat = async (id: string) => {
         try {
-            const data: { chatlog: Message[], forwarded?: boolean } = await $fetch("/api/db/get_support", {
+            const data: { chatlog: Message[], forwarded?: boolean } = await $fetch("/api/support/get_support", {
                 method: "POST",
                 body: JSON.stringify({ id: id }),
             });
@@ -46,7 +46,7 @@ export const useChat = () => {
 
     const forwardChat = async (chatlog: Message[], id: string, reason: string) => {
         try {
-            const data: { result: string } = await $fetch("/api/db/forward_support", {
+            const data: { result: string } = await $fetch("/api/support/forward_support", {
                 method: "POST",
                 body: JSON.stringify({ chatlog: chatlog, id: id, reason: reason}),
             });
