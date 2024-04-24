@@ -9,7 +9,9 @@ export default defineEventHandler(async (event) => {
 
         await ref.set({
             chatlog: data.chatlog,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            forwarded: data.forwarded,
+            forward_reason: data.forward_reason
         });
         
         return { result: id };

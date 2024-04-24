@@ -404,6 +404,21 @@
     padding: 10px;
   }
 
+  .chat-box .support {
+    display: flex;
+  }
+
+  .support .details {
+    margin-right: auto;
+    max-width: calc(100% - 130px);
+  }
+
+  .support .details p {
+    background: #6bd7af;
+    color: #2c2c2c;
+    border-radius: 25px 25px 25px 0;
+  }
+
   .chat-area .typing-area {
     padding: 18px 18px;
     display: flex;

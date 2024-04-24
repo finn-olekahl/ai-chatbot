@@ -2,11 +2,11 @@ import type { Message } from '~/types';
 
 export const useChat = () => {
 
-    const saveChat = async (chatlog: Message[], id?: string) => {
+    const saveChat = async (chatlog: Message[], id?: string, forwarded?: boolean, forward_reason?: string) => {
         try {
             const data: { result: string } = await $fetch("/api/db/save_support", {
                 method: "POST",
-                body: JSON.stringify({ chatlog: chatlog, id: id }),
+                body: JSON.stringify({ chatlog: chatlog, id: id, forwarded: forwarded, forward_reason: forward_reason}),
             });
 
             return data.result;
@@ -32,7 +32,7 @@ export const useChat = () => {
 
     const loadChat = async (id: string) => {
         try {
-            const data: { chatlog: Message[], forwarded?: boolean } = await $fetch("/api/db/get_support", {
+            const data: { chatlog: Message[], forwarded?: boolean, forward_reason?: string } = await $fetch("/api/db/get_support", {
                 method: "POST",
                 body: JSON.stringify({ id: id }),
             });

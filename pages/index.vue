@@ -33,13 +33,18 @@
                   <p>{{ message.content }}</p>
                 </div>
               </div>
-              <div v-else-if="message.author == 'forward'" class="chat forward">
+              <div v-else-if="message.author == 'support'" class="chat support">
                 <div class="details">
-                  <p>Möchtest du mit dem Kundensupport verbunden werden?</p>
-                  <button @click="forwardChat">Ja</button>
-                  <button @click="sendNoForwardMessage">Nein</button>
+                  <p>{{ message.content }}</p>
                 </div>
               </div>
+              <div v-else-if="message.author == 'forward'" class="chat support">
+                  <div class="details">
+                    <p>Möchtest du mit dem Kundensupport verbunden werden?</p>
+                    <button @click="forwardChat">Ja</button>
+                    <button @click="sendNoForwardMessage">Nein</button>
+                  </div>
+                </div>
               <div v-else class="chat incoming">
                 <div class="details">
                   <p>{{ message.content }}</p>
@@ -97,6 +102,7 @@ export default {
     assistantId: string | null,
     chatId: string | null,
     forwarded: boolean,
+    forward_reason: string
   
   } {
     return {
@@ -109,6 +115,7 @@ export default {
       assistantId: null,
       chatId: null,
       forwarded: false,
+      forward_reason: ""
     };
   },
   mounted() {
@@ -139,7 +146,7 @@ export default {
           this.fetchResponse(trimmedMessage);
         }
 
-        this.chatId = await saveChat(this.messages as Message[], this.chatId ?? undefined);
+        this.chatId = await saveChat(this.messages as Message[], this.chatId ?? undefined, this.forwarded, this.forward_reason );
       }
     },
     async sendNoForwardMessage() {
@@ -257,15 +264,12 @@ export default {
         (eventSource as EventSource).close();
       }
 
-      if ((savedChat as {chatlog: [], forwarded: boolean}).chatlog) {
-        this.messages = (savedChat as {chatlog: [], forwarded: boolean}).chatlog;
-        this.forwarded = (savedChat as {chatlog: [], forwarded: boolean}).forwarded ?? false;
+      if ((savedChat as {chatlog: [], forwarded: boolean, forward_reason: string }).chatlog) {
+        this.messages = (savedChat as {chatlog: [], forwarded: boolean, forward_reason: string }).chatlog;
+        this.forwarded = (savedChat as {chatlog: [], forwarded: boolean, forward_reason: string }).forwarded ?? false;
+        this.forward_reason = (savedChat as { chatlog: [], forwarded: boolean, forward_reason: string }).forward_reason ?? "";
         await this.startForwardStream();
       }
-    },
-    updateData(data: {chatlog: [], forwarded: boolean}) {
-      this.messages = data.chatlog;
-      this.forwarded = data.forwarded;
     },
     async startForwardStream() {
       eventSource = new EventSource(`/api/support/${this.chatId}`);

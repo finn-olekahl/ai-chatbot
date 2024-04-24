@@ -4,6 +4,7 @@
         <div class="spacer"></div>
         <div class="conversations-container">
             <div v-for="data in chats" class="conversation-element">
+                <div v-if="loading" class="deactivated-overlay"></div>
                 <div @click="onClickChat(data.id)">
                     <h2>{{ data.forward_reason }}</h2>
                     <p>last updated: {{ calculateTimeDifference(data.timestamp) }}</p>
@@ -26,6 +27,7 @@
             </div>
         </header>
         <div class="chat-box" id="chat-box">
+            <img v-if="loading" src="../../../public/loading-indicator.gif" alt="">
             <div class="chat incoming typing-indicator" :id="typing_indicator_status">
             <div class="details">
                 <div class="texting-div">
@@ -36,19 +38,12 @@
             </div>
             </div>
             <div v-for="message in messages">
-            <div v-if="message.author == 'user'" class="chat outgoing">
+            <div v-if="message.author == 'user'" class="chat incoming">
                 <div class="details">
                 <p>{{ message.content }}</p>
                 </div>
             </div>
-            <div v-else-if="message.author == 'forward'" class="chat forward">
-                <div class="details">
-                <p>Möchtest du mit dem Kundensupport verbunden werden?</p>
-                <button @click="forwardChat">Ja</button>
-                <button @click="sendNoForwardMessage">Nein</button>
-                </div>
-            </div>
-            <div v-else class="chat incoming">
+            <div v-else class="chat outgoing">
                 <div class="details">
                 <p>{{ message.content }}</p>
                 </div>
@@ -92,6 +87,7 @@ definePageMeta({
 })
 
 let eventSource: EventSource | null = null;
+const { saveChat, saveUnsolvedChat, loadChat, forwardChat } = useChat();
 
 export default {
     data(): {
@@ -102,7 +98,9 @@ export default {
         assistantId: string | null,
         chatId: string | null,
         forwarded: boolean,
-        chats: { chatlog: [], forwarded?: boolean, forward_reason?: string, timestamp: string, id: string }[]
+        chats: { chatlog: [], forwarded?: boolean, forward_reason?: string, timestamp: string, id: string }[],
+        loading: boolean,
+        forward_reason: string
   }{
         return {
             messages: [],
@@ -112,13 +110,31 @@ export default {
             assistantId: null,
             chatId: null,
             forwarded: false,
-            chats: []
+            chats: [],
+            loading: false,
+            forward_reason: ""
         };
     },
     mounted() {
         this.getUnsolvedChats()
     },
     methods: {
+        handleInput() {
+            this.isButtonDisabled = !this.message.trim();
+        },
+        async sendMessage() {
+            const trimmedMessage = this.message.trim();
+            if (trimmedMessage !== '') {
+                this.messages.unshift({
+                    id: Date.now(),
+                    author: 'support',
+                    content: trimmedMessage,
+                });
+                this.message = '';
+                this.isButtonDisabled = true;
+            }
+            this.chatId = await saveChat(this.messages as Message[], this.chatId ?? undefined, this.forwarded, this.forward_reason);
+        },
         async getUnsolvedChats() {
             const response = await fetch('/api/support/get_forwarded');
             if (!response.ok) {
@@ -126,7 +142,7 @@ export default {
             }
             const data = await response.json();
             await data.forEach(async (id: string) => {
-                const IdData: { chatlog: [], forwarded?: boolean, forward_reason?: string, timestamp: string, id: string } = await $fetch("/api/db/get_support", {
+                const IdData: { chatlog: [], timestamp: string, id: string, forwarded?: boolean, forward_reason?: string } = await $fetch("/api/db/get_support", {
                     method: "POST",
                     body: JSON.stringify({ id: id }),
                 });
@@ -154,18 +170,26 @@ export default {
                 return `${days} days`;
             }
         },
-        onClickChat(id: string) {
+        async onClickChat(id: string) {
+            this.loading = true
             this.chatId = id;
             if (eventSource != null) {
                 eventSource.close()
             }
-            this.startForwardStream()
+            const loadedChat = await loadChat(this.chatId);
+            if ((loadedChat as { chatlog: [], forwarded: boolean, forward_reason: string }).chatlog) {
+                this.messages = (loadedChat as { chatlog: [], forwarded: boolean, forward_reason: string }).chatlog;
+                this.forwarded = (loadedChat as { chatlog: [], forwarded: boolean, forward_reason: string }).forwarded ?? false;
+                this.forward_reason = (loadedChat as { chatlog: [], forwarded: boolean, forward_reason: string }).forward_reason ?? "";
+                this.startForwardStream();
+            }
         },
         async startForwardStream() {
             eventSource = new EventSource(`/api/support/${this.chatId}`);
             eventSource.onmessage = (event) => {
                 const data = JSON.parse(event.data);
                 this.messages = (data as { chatlog: [] }).chatlog;
+                this.loading = false;
             }
         },
     }
@@ -527,6 +551,7 @@ export default {
   }
 
   .chat-box {
+    position: relative;
     display: flex;
     flex-direction: column-reverse;
     height: 500px;
@@ -534,6 +559,20 @@ export default {
     background: #f0f0f0;
     padding: 10px 30px 20px 30px;
     box-shadow: inset 0 32px 32px -32px rgb(0 0 0 / 10%), inset 0 -32px 32px -32px rgb(0 0 0 / 10%);
+  }
+
+  .chat-box > img {
+    height: 30px;
+    width: 30px;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .chat-box .chat {
@@ -709,7 +748,7 @@ export default {
     left: 0;
     right: calc(100vw - 500px);
     box-shadow: 0 0 100px 0 rgba(0, 0, 0, 0.3);
-    z-index: 999;
+    z-index: 100;
   }
 
   .side-menu > h1 {
@@ -736,8 +775,10 @@ export default {
   }
 
   .conversation-element {
+    position: relative;
     padding: 10px 20px;
     border-radius: 20px;
+    overflow: hidden;;
     box-shadow: 0 0 30px 0 rgba(0, 0, 0, 0.25);
     transition: all 0.2s ease;
   }
@@ -746,11 +787,11 @@ export default {
     margin-bottom: 20px;
   }
 
-  .conversation-element:hover {
+  .conversation-element:hover:not(:has(.deactivated-overlay)) {
     transform: scale(1.04);
   }
 
-  .conversation-element:active:hover {
+  .conversation-element:active:hover:not(:has(.deactivated-overlay))  {
     transform: scale(1.0);
   }
 
@@ -760,6 +801,16 @@ export default {
     -webkit-line-clamp: 1;
     line-clamp: 1; 
     -webkit-box-orient: vertical;
+  }
+
+  .deactivated-overlay {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(199, 199, 199, 0.731);
+    z-index: 999;
   }
 
   @keyframes typing {
