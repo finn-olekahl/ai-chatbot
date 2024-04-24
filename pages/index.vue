@@ -130,7 +130,8 @@ export default {
     assistantId: string | null,
     chatId: string | null,
     forwarded: boolean,
-  
+    timer: number,
+    timerRef: number | null,
   } {
     return {
       messages: [
@@ -141,7 +142,9 @@ export default {
       typing_indicator_status: "disabled",
       assistantId: null,
       chatId: null,
-      forwarded: false
+      forwarded: false,
+      timer: 2,
+      timerRef: null
     };
   },
   mounted() {
@@ -217,6 +220,10 @@ export default {
         }
 
         this.chatId = await saveChat(this.messages as Message[], this.chatId ?? undefined);
+        await $fetch('/api/support/set_user_last_typing', {
+          method: 'POST',
+          body: JSON.stringify({ id: this.chatId, reset: true})
+        });
       }
     },
     async sendNoForwardMessage() {
@@ -252,8 +259,13 @@ export default {
 
         await this.startForwardStream();
     },
-    handleInput() {
+    async handleInput() {
       this.isButtonDisabled = !this.message.trim();
+      console.log("teststststststts");
+      await $fetch('/api/support/set_user_last_typing', {
+        method: 'POST',
+        body: JSON.stringify({ id: this.chatId })
+      });
     },
     async fetchResponse(_message: string) {
       const threadId = thread != null ? thread.id : (thread = await openai.beta.threads.create()).id;
@@ -346,8 +358,49 @@ export default {
       eventSource.onmessage = (event) => {
         const data = JSON.parse(event.data);
         this.messages = (data as {chatlog: []}).chatlog;
+        this.typing_indicator_status = this.calculateTimeDifferenceInSeconds(data.support_last_typing) <= 5 ? "enabled" : "disabled"
+        this.resetCounter(async () => {
+          console.log("reset")
+          await $fetch('/api/support/set_user_last_typing', {
+            method: 'POST',
+            body: JSON.stringify({ id: this.chatId, reset: true })
+          });
+        })
       }
     },
+    calculateTimeDifferenceInSeconds(msString: string): number {
+      const pastTime = parseInt(msString, 10);
+      const currentTime = Date.now();
+      const difference = currentTime - pastTime;
+      const differenceInSeconds = difference / 1000;
+      return differenceInSeconds;
+    },
+    resetCounter(callback: () => Promise<void>) {
+      // Clears any existing timer
+      if (this.timerRef) {
+        clearTimeout(this.timerRef);
+      }
+
+      // Resets the timer to 5 seconds
+      this.timer = 2;
+
+      const countDown = () => {
+        if (this.timer > 0) {
+          this.timer--;
+          this.timerRef = setTimeout(countDown, 1000) as unknown as number;
+        } else {
+          callback(); // Execute the callback function when timer reaches 0
+        }
+      };
+
+      // Start the countdown
+      this.timerRef = setTimeout(countDown, 1000) as unknown as number;
+    },
+  },
+  unmounted() {
+    if (this.timerRef) {
+      clearTimeout(this.timerRef);
+    }
   },
 };
 </script>

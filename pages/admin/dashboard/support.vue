@@ -108,7 +108,9 @@ export default {
         forwarded: boolean,
         chats: { chatlog: [], forwarded?: boolean, forward_reason?: string, timestamp: string, id: string }[],
         loading: boolean,
-        forward_reason: string
+        forward_reason: string,
+        timer: number,
+        timerRef: number | null,
   }{
         return {
             messages: [],
@@ -120,7 +122,9 @@ export default {
             forwarded: false,
             chats: [],
             loading: false,
-            forward_reason: ""
+            forward_reason: "",
+            timer: 2,
+            timerRef: null
         };
     },
     mounted() {
@@ -141,8 +145,12 @@ export default {
         return { fileInput, triggerFileInput };
     },
     methods: {
-        handleInput() {
+        async handleInput() {
             this.isButtonDisabled = !this.message.trim();
+            await $fetch('/api/support/set_support_last_typing', {
+                method: 'POST',
+                body: JSON.stringify({ id: this.chatId })
+            });
         },
         async uploadFile(event: Event) {
             const input = event.target as HTMLInputElement;
@@ -186,6 +194,11 @@ export default {
                 this.isButtonDisabled = true;
             }
             this.chatId = await saveChat(this.messages as Message[], this.chatId ?? undefined);
+
+            await $fetch('/api/support/set_support_last_typing', {
+                method: 'POST',
+                body: JSON.stringify({ id: this.chatId, reset: true })
+            });
         },
         async getUnsolvedChats() {
             const response = await fetch('/api/support/get_forwarded');
@@ -242,9 +255,51 @@ export default {
             eventSource.onmessage = (event) => {
                 const data = JSON.parse(event.data);
                 this.messages = (data as { chatlog: [] }).chatlog;
+                this.typing_indicator_status = this.calculateTimeDifferenceInSeconds(data.user_last_typing) <= 5 ? "enabled" : "disabled"
+                this.resetCounter(async () => {
+                    console.log("reset")
+                    await $fetch('/api/support/set_support_last_typing', {
+                        method: 'POST',
+                        body: JSON.stringify({ id: this.chatId, reset: true })
+                    });
+                })
                 this.loading = false;
             }
         },
-    }
+        calculateTimeDifferenceInSeconds(msString: string): number {
+            const pastTime = parseInt(msString, 10);
+            const currentTime = Date.now();
+            const difference = currentTime - pastTime;
+            const differenceInSeconds = difference / 1000;
+            return differenceInSeconds;
+        },
+        resetCounter(callback: () => Promise<void>) {
+            // Clears any existing timer
+            if (this.timerRef) {
+                clearTimeout(this.timerRef);
+            }
+
+            // Resets the timer to 5 seconds
+            this.timer = 2;
+
+            const countDown = () => {
+                if (this.timer > 0) {
+                    this.timer--;
+                    this.timerRef = setTimeout(countDown, 1000) as unknown as number;
+                } else {
+                    callback(); // Execute the callback function when timer reaches 0
+                }
+            };
+
+            // Start the countdown
+            this.timerRef = setTimeout(countDown, 1000) as unknown as number;
+        },
+    },
+    unmounted() {
+        // Ensure to clear the timer when the component is destroyed
+        if (this.timerRef) {
+            clearTimeout(this.timerRef);
+        }
+    },
 }
 </script>
