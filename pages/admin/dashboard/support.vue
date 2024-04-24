@@ -70,7 +70,7 @@
             <div class="content">
             <input v-model="chatId" id="convo-key" type="text" placeholder="Your key">
             </div>
-            <a href="#" @click="loadSavedChat" class="submit" id="key-submit">Submit</a>
+            <a href="#" @click="" class="submit" id="key-submit">Submit</a>
         </div>
         </section>
     </div>
@@ -132,7 +132,7 @@ export default {
                 this.message = '';
                 this.isButtonDisabled = true;
             }
-            this.chatId = await saveChat(this.messages as Message[], this.chatId ?? undefined, this.forwarded, this.forward_reason);
+            this.chatId = await saveChat(this.messages as Message[], this.chatId ?? undefined);
         },
         async getUnsolvedChats() {
             const response = await fetch('/api/support/get_forwarded');

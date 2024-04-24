@@ -1,7 +1,5 @@
 import { authAdmin } from "~/server/utils/firebase";
 
-
-
 export default defineEventHandler(async (event) => {
 
   const config = useRuntimeConfig();

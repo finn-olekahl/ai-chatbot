@@ -19,3 +19,13 @@ body {
   padding: 0;
 }
 </style>
+
+
+<script setup lang="ts">
+useSeoMeta({
+  title: 'BUGLAND - Chatbot',
+  ogTitle: 'BUGBOT Timo',
+  description: 'Ach der Timo.. unser liebster Helfer',
+  ogDescription: 'Ach der Timo.. unser liebster Helfer',
+});
+</script>

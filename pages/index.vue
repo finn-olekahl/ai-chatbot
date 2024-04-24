@@ -84,9 +84,10 @@ import '~/assets/css/index.css'
 import type { TextContentBlock } from 'openai/resources/beta/threads/messages.mjs';
 import type { Message } from '~/types';
 import OpenAI from "openai";
+import type { Thread } from 'openai/resources/beta/index.mjs';
 const config = useRuntimeConfig();
 const openai = new OpenAI({ apiKey: config.public.openAi.apiKey, dangerouslyAllowBrowser: true });
-const thread = await openai.beta.threads.create();
+let thread: Thread | null = null;
 let reason: string | null = null;
 let eventSource: EventSource | null = null;
 
@@ -94,6 +95,16 @@ let eventSource: EventSource | null = null;
 const { saveChat, saveUnsolvedChat, loadChat, forwardChat } = useChat();
 
 export default {
+  head() {
+    return {
+      title: 'BUGLAND - Chatbot',
+      meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { hid: 'description', name: 'description', content: 'BUGLAND Chatbot' },
+      ],
+    };
+  },
   data(): {
     messages: Message[],
     message: string,
@@ -184,6 +195,7 @@ export default {
       this.isButtonDisabled = !this.message.trim();
     },
     async fetchResponse(_message: string) {
+      const threadId = thread != null ? thread.id : (thread = await openai.beta.threads.create()).id;
       this.typing_indicator_status = "enabled"
       if (!this.assistantId) {
         console.error('Assistant ID is not set');
@@ -192,7 +204,7 @@ export default {
 
       try {
        await openai.beta.threads.messages.create(
-          thread.id,
+        threadId,
           {
             role: "user",
             content: _message,
@@ -200,7 +212,7 @@ export default {
         );
 
         let run = await openai.beta.threads.runs.createAndPoll(
-          thread.id,
+          threadId,
           {
             assistant_id: this.assistantId,
           }
