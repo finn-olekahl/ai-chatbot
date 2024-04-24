@@ -461,6 +461,11 @@
     margin-right: 8px;
   }
 
+  .chat > div > img {
+    height: 100px;
+    width: 100px;
+  }
+
   .chat-area .typing-area {
     padding: 18px 18px;
     display: flex;

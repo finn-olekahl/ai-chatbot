@@ -29,12 +29,18 @@
             </div>
             <div v-for="message in messages">
               <div v-if="message.author == 'user'" class="chat outgoing">
-                <div class="details">
+                <div v-if="message.content.includes('https://storage.googleapis.com')">
+                  <img :src="message.content" alt="">
+                </div>
+                <div v-else class="details">
                   <p>{{ message.content }}</p>
                 </div>
               </div>
               <div v-else-if="message.author == 'support'" class="chat support">
-                <div class="details">
+                <div v-if="message.content.includes('https://storage.googleapis.com')">
+                  <img :src="message.content" alt="">
+                </div>
+                <div v-else class="details">
                   <p>{{ message.content }}</p>
                 </div>
               </div>
@@ -48,7 +54,10 @@
                   </div>
                 </div>
               <div v-else class="chat incoming">
-                <div class="details">
+                <div v-if="message.content.includes('https://storage.googleapis.com')">
+                  <img :src="message.content" alt="">
+                </div>
+                <div v-else class="details">
                   <p>{{ message.content }}</p>
                 </div>
               </div>
@@ -137,7 +146,7 @@ export default {
     this.fetchAssistantId();
   },
   setup() {
-    const fileInput: Ref<HTMLInputElement | null> = ref(null); // Declare the ref inside setup
+    const fileInput: Ref<HTMLInputElement | null> = ref(null)
 
     const triggerFileInput = () => {
       if (fileInput.value) {
@@ -161,9 +170,9 @@ export default {
       const file = input.files[0];
       const formData = new FormData();
       formData.append("file", file);
+      console.log(formData.values)
 
       try {
-        console.log("try")
         const response = await fetch('/api/support/upload_picture', {
           method: 'POST',
           body: formData,
@@ -201,7 +210,7 @@ export default {
         this.message = '';
         this.isButtonDisabled = true;
 
-        if (!this.forwarded) {
+        if (!this.forwarded && !trimmedMessage.includes("https://storage.googleapis.com")) {
           this.fetchResponse(trimmedMessage);
         }
 
