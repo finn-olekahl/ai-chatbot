@@ -7,18 +7,8 @@ on:
 jobs:
   test:
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    runs-on: debian-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Install Microsoft GPG public key
-      run: |
-        wget -qO- https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-        sudo apt-get update
-
-    - name: Setup Microsoft Packages repository
-      run: |
-        echo "deb [arch=amd64,arm64,amd] https://packages.microsoft.com/ubuntu/22.04/prod jammy main" | sudo tee /etc/apt/sources.list.d/microsoft-prod.list
-        sudo apt-get update
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
