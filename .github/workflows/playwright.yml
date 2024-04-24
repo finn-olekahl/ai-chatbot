@@ -9,10 +9,8 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
-    - name: fix shitty microsoft
-      run: sudo vim  /etc/apt/sources.list.d/vscode.list
     - name: Update packages
-      run: sudo apt update && sudo apt upgrade -y
+      run: sudo apt-get update
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
