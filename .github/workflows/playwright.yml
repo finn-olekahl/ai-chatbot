@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Update packages
+      run: sudo vim  /etc/apt/sources.list.d/vscode.list
       run: sudo apt update && sudo apt upgrade -y
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
