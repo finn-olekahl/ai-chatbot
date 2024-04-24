@@ -102,7 +102,6 @@ export default {
     assistantId: string | null,
     chatId: string | null,
     forwarded: boolean,
-    forward_reason: string
   
   } {
     return {
@@ -114,8 +113,7 @@ export default {
       typing_indicator_status: "disabled",
       assistantId: null,
       chatId: null,
-      forwarded: false,
-      forward_reason: ""
+      forwarded: false
     };
   },
   mounted() {
@@ -146,7 +144,7 @@ export default {
           this.fetchResponse(trimmedMessage);
         }
 
-        this.chatId = await saveChat(this.messages as Message[], this.chatId ?? undefined, this.forwarded, this.forward_reason );
+        this.chatId = await saveChat(this.messages as Message[], this.chatId ?? undefined);
       }
     },
     async sendNoForwardMessage() {
@@ -267,7 +265,6 @@ export default {
       if ((savedChat as {chatlog: [], forwarded: boolean, forward_reason: string }).chatlog) {
         this.messages = (savedChat as {chatlog: [], forwarded: boolean, forward_reason: string }).chatlog;
         this.forwarded = (savedChat as {chatlog: [], forwarded: boolean, forward_reason: string }).forwarded ?? false;
-        this.forward_reason = (savedChat as { chatlog: [], forwarded: boolean, forward_reason: string }).forward_reason ?? "";
         await this.startForwardStream();
       }
     },
