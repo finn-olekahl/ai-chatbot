@@ -29,7 +29,7 @@
             </div>
             <div v-for="message in messages">
               <div v-if="message.author == 'user'" class="chat outgoing">
-                <div v-if="message.content.includes('https://storage.googleapis.com')">
+                <div class="details" v-if="message.content.includes('https://storage.googleapis.com')">
                   <img :src="message.content" alt="">
                 </div>
                 <div v-else class="details">
@@ -37,7 +37,7 @@
                 </div>
               </div>
               <div v-else-if="message.author == 'support'" class="chat support">
-                <div v-if="message.content.includes('https://storage.googleapis.com')">
+                <div class="details" v-if="message.content.includes('https://storage.googleapis.com')">
                   <img :src="message.content" alt="">
                 </div>
                 <div v-else class="details">
@@ -54,7 +54,7 @@
                   </div>
                 </div>
               <div v-else class="chat incoming">
-                <div v-if="message.content.includes('https://storage.googleapis.com')">
+                <div class="details" v-if="message.content.includes('https://storage.googleapis.com')">
                   <img :src="message.content" alt="">
                 </div>
                 <div v-else class="details">

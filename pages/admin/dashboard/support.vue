@@ -39,18 +39,18 @@
             </div>
             <div v-for="message in messages">
             <div v-if="message.author == 'user'" class="chat incoming">
-                <div v-if="message.content.includes('https://storage.googleapis.com')">
+                <div class="details" v-if="message.content.includes('https://storage.googleapis.com')">
                     <img :src="message.content" alt="">
                 </div>
-                <div class="details">
+                <div v-else class="details">
                 <p>{{ message.content }}</p>
                 </div>
             </div>
             <div v-else class="chat outgoing">
-                <div v-if="message.content.includes('https://storage.googleapis.com')">
+                <div class="details" v-if="message.content.includes('https://storage.googleapis.com')">
                     <img :src="message.content" alt="">
                 </div>
-                <div class="details">
+                <div v-else class="details">
                 <p>{{ message.content }}</p>
                 </div>
             </div>
