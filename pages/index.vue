@@ -64,7 +64,7 @@
             </div>
           </div>
           <form action="#" class="typing-area" autocomplete="off">
-            <button type="button" id="add-image-btn" @click="triggerFileInput"><i class="fas fa-image"></i></button>
+            <button v-if="forwarded" type="button" id="add-image-btn" @click="triggerFileInput"><i class="fas fa-image"></i></button>
             <input type="file" ref="fileInput" style="display: none" @change="uploadFile" accept="image/*"/>
             <input type="text" placeholder="Type something..." id="typing-input" v-model="message" @input="handleInput">
             <button id="send-message" :disabled="isButtonDisabled" @click="sendMessage"><i class="fas fa-location-arrow"></i></button>
@@ -104,6 +104,8 @@ const openai = new OpenAI({ apiKey: config.public.openAi.apiKey, dangerouslyAllo
 let thread: Thread | null = null;
 let reason: string | null = null;
 let eventSource: EventSource | null = null;
+
+const forwardRegex = /\s*\[\s*FORWARD_KUNDENSUPPORT\s*\]\s*/;
 
 
 const { saveChat, saveUnsolvedChat, loadChat, forwardChat } = useChat();
@@ -306,9 +308,9 @@ export default {
     },
     checkForwardMessage(message: string) {
       console.log('Checking for forward message:', message);
-      if (message.includes('|||| [FORWARD_KUNDENSUPPORT] ')) {
-        reason = message.split('|||| [FORWARD_KUNDENSUPPORT] ')[1].trim();
-        return message.split('|||| [FORWARD_KUNDENSUPPORT] ')[0].trim();
+      if (message.match(forwardRegex)) {
+        reason = message.split(' [FORWARD_KUNDENSUPPORT] ')[1].trim();
+        return message.split(' [FORWARD_KUNDENSUPPORT] ')[0].trim();
       }
       return null;
     },
