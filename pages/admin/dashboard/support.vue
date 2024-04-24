@@ -57,7 +57,7 @@
             </div>
         </div>
         <form action="#" class="typing-area" autocomplete="off">
-            <button type="button" id="add-image-btn" @click="triggerFileInput"><i class="fas fa-image"></i></button>
+            <button :disabled="chatId == null" type="button" id="add-image-btn" @click="triggerFileInput"><i class="fas fa-image"></i></button>
             <input type="file" ref="fileInput" style="display: none" @change="uploadFile" />
             <input :disabled="chatId == null" type="text" placeholder="Type something..." id="typing-input" v-model="message" @input="handleInput">
             <button id="send-message" :disabled="isButtonDisabled" @click="sendMessage"><i class="fas fa-location-arrow"></i></button>

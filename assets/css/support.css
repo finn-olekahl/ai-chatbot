@@ -479,9 +479,14 @@
     border-radius: 25px;
     outline: none;
     padding: 0 15px;
+    transition: all 0.2s ease;
   }
 
   .typing-area input:disabled {
+    background-color: rgb(177, 177, 177);
+  }
+
+  .typing-area #add-image-btn:disabled {
     background-color: rgb(177, 177, 177);
   }
 
@@ -518,7 +523,7 @@
     border-radius: 50%;
     font-size: 15px;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0, .5, .5, 1);
+    transition: all 0.2s ease;
   }
 
   .typing-area #send-message i {
