@@ -10,8 +10,8 @@
               <span v-if="forwarded">BUGLAND Support</span>
               <span v-else="forwarded">BUGBOT Timo</span>
               <div id="status-wrapper">
-                <div v-if="forwarded"id="purple-dot"></div>
-                <div v-else="forwarded"id="green-dot"></div>
+                <div v-if="forwarded" id="purple-dot"></div>
+                <div v-else="forwarded" id="green-dot"></div>
                 <p>Active</p>
               </div>
             </div>
@@ -38,11 +38,13 @@
                   <p>{{ message.content }}</p>
                 </div>
               </div>
-              <div v-else-if="message.author == 'forward'" class="chat support">
+              <div v-else-if="message.author == 'forward'" class="chat forward">
                   <div class="details">
                     <p>Möchtest du mit dem Kundensupport verbunden werden?</p>
-                    <button @click="forwardChat">Ja</button>
-                    <button @click="sendNoForwardMessage">Nein</button>
+                    <div class="buttons-wrapper">
+                      <button class="green" @click="forwardChat">Ja</button>
+                      <button class="red" @click="sendNoForwardMessage">Nein</button>
+                    </div>
                   </div>
                 </div>
               <div v-else class="chat incoming">
@@ -53,6 +55,8 @@
             </div>
           </div>
           <form action="#" class="typing-area" autocomplete="off">
+            <button type="button" id="add-image-btn" @click="triggerFileInput"><i class="fas fa-image"></i></button>
+            <input type="file" ref="fileInput" style="display: none" @change="uploadFile" accept="image/*"/>
             <input type="text" placeholder="Type something..." id="typing-input" v-model="message" @input="handleInput">
             <button id="send-message" :disabled="isButtonDisabled" @click="sendMessage"><i class="fas fa-location-arrow"></i></button>
           </form>
@@ -82,6 +86,7 @@
 <script lang="ts">
 import '~/assets/css/index.css'
 import type { TextContentBlock } from 'openai/resources/beta/threads/messages.mjs';
+import { ref } from 'vue';
 import type { Message } from '~/types';
 import OpenAI from "openai";
 import type { Thread } from 'openai/resources/beta/index.mjs';
@@ -93,6 +98,7 @@ let eventSource: EventSource | null = null;
 
 
 const { saveChat, saveUnsolvedChat, loadChat, forwardChat } = useChat();
+var fileInput: Ref<HTMLInputElement | null>;
 
 export default {
   head() {
@@ -130,7 +136,51 @@ export default {
   mounted() {
     this.fetchAssistantId();
   },
+  setup() {
+    const fileInput: Ref<HTMLInputElement | null> = ref(null); // Declare the ref inside setup
+
+    const triggerFileInput = () => {
+      if (fileInput.value) {
+        console.log('File input is accessed:', fileInput.value);
+        fileInput.value.click();
+      } else {
+        console.error('The file input is not referenced correctly');
+      }
+    };
+
+    return { fileInput, triggerFileInput };
+  },
   methods: {
+    async uploadFile(event: Event) {
+      const input = event.target as HTMLInputElement;
+      if (!input.files || input.files.length === 0) {
+        alert("No file selected.");
+        return;
+      }
+
+      const file = input.files[0];
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        console.log("try")
+        const response = await fetch('/api/support/upload_picture', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const result = await response.json();
+        console.log('File uploaded:', result.url);
+        this.message = result.url as string;
+        this.sendMessage()
+        
+      } catch (error) {
+        console.error('Error uploading file:', error);
+      }
+    },
     async fetchAssistantId() {
       const response = await fetch('/api/openai');
       console.log(response);

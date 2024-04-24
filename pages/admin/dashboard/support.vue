@@ -51,7 +51,9 @@
             </div>
         </div>
         <form action="#" class="typing-area" autocomplete="off">
-            <input type="text" placeholder="Type something..." id="typing-input" v-model="message" @input="handleInput">
+            <button type="button" id="add-image-btn" @click="triggerFileInput"><i class="fas fa-image"></i></button>
+            <input type="file" ref="fileInput" style="display: none" @change="uploadFile" />
+            <input :disabled="chatId == null" type="text" placeholder="Type something..." id="typing-input" v-model="message" @input="handleInput">
             <button id="send-message" :disabled="isButtonDisabled" @click="sendMessage"><i class="fas fa-location-arrow"></i></button>
         </form>
         <div class="error-message" id="error-message">
@@ -87,6 +89,7 @@ definePageMeta({
 
 let eventSource: EventSource | null = null;
 const { saveChat, loadChat } = useChat();
+var fileInput: Ref<HTMLInputElement | null>;
 
 export default {
     data(): {
@@ -117,9 +120,53 @@ export default {
     mounted() {
         this.getUnsolvedChats()
     },
+    setup() {
+        const fileInput: Ref<HTMLInputElement | null> = ref(null); // Declare the ref inside setup
+
+        const triggerFileInput = () => {
+            if (fileInput.value) {
+                console.log('File input is accessed:', fileInput.value);
+                fileInput.value.click();
+            } else {
+                console.error('The file input is not referenced correctly');
+            }
+        };
+
+        return { fileInput, triggerFileInput };
+    },
     methods: {
         handleInput() {
             this.isButtonDisabled = !this.message.trim();
+        },
+        async uploadFile(event: Event) {
+            const input = event.target as HTMLInputElement;
+            if (!input.files || input.files.length === 0) {
+                alert("No file selected.");
+                return;
+            }
+
+            const file = input.files[0];
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                console.log("try")
+                const response = await fetch('/api/support/upload_picture', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const result = await response.json();
+                console.log('File uploaded:', result.url);
+                this.message = result.url as string;
+                this.sendMessage()
+
+            } catch (error) {
+                console.error('Error uploading file:', error);
+            }
         },
         async sendMessage() {
             const trimmedMessage = this.message.trim();
@@ -180,6 +227,7 @@ export default {
                 this.messages = (loadedChat as { chatlog: [], forwarded: boolean, forward_reason: string }).chatlog;
                 this.forwarded = (loadedChat as { chatlog: [], forwarded: boolean, forward_reason: string }).forwarded ?? false;
                 this.forward_reason = (loadedChat as { chatlog: [], forwarded: boolean, forward_reason: string }).forward_reason ?? "";
+                this.loading = false;
                 this.startForwardStream();
             }
         },

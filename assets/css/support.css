@@ -439,7 +439,7 @@
 
   .typing-area input {
     height: 45px;
-    width: calc(100% - 55px);
+    width: calc(100% - 55px - 55px);
     flex-grow: 1;
     font-size: 17px;
     border: none;
@@ -449,8 +449,11 @@
     padding: 0 15px;
   }
 
-  .typing-area button {
-  
+  .typing-area input:disabled {
+    background-color: rgb(177, 177, 177);
+  }
+
+  .typing-area #send-message {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -465,14 +468,32 @@
     border-radius: 50%;
     font-size: 15px;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0,.5,.5,1);
+    transition: all 0.2s cubic-bezier(0, .5, .5, 1);
   }
 
-  .typing-area button i {
-    transition: all 0.2s cubic-bezier(0,.5,.5,1);
+  .typing-area #add-image-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 7px;
+    overflow: hidden;
+    height: 45px;
+    width: 45px;
+    border: none;
+    outline: none;
+    background: #f0f0f0;
+    color: black;
+    border-radius: 50%;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0, .5, .5, 1);
   }
 
-  .typing-area button:disabled {
+  .typing-area #send-message i {
+    transition: all 0.2s cubic-bezier(0, .5, .5, 1);
+  }
+
+  .typing-area #send-message:disabled {
     margin-left: 0;
     width: 0;
     opacity: 0;
@@ -480,7 +501,7 @@
     color: black;
   }
 
-  .typing-area button:disabled i {
+  .typing-area #send-message:disabled i {
     transform: scaleX(10%);
   }
 
