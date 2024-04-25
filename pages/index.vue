@@ -357,10 +357,13 @@ export default {
       eventSource = new EventSource(`/api/support/${this.chatId}`);
       eventSource.onmessage = (event) => {
         const data = JSON.parse(event.data);
+        if (this.messages.length + 1 == (data as { chatlog: [] }).chatlog.length) {
+          this.typing_indicator_status = "disabled"
+        }
         this.messages = (data as {chatlog: []}).chatlog;
         this.typing_indicator_status = this.calculateTimeDifferenceInSeconds(data.support_last_typing) <= 5 ? "enabled" : "disabled"
         this.resetCounter(async () => {
-          console.log("reset")
+          this.typing_indicator_status = "disabled"
           await $fetch('/api/support/set_user_last_typing', {
             method: 'POST',
             body: JSON.stringify({ id: this.chatId, reset: true })

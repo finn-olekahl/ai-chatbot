@@ -7,7 +7,6 @@
     <p>Account: <span>{{ user?.providerData[0].email }}</span></p>
   </div>
   <div class="content-dashboard">
-    <button @click="$router.push('/admin/dashboard/guidelines')">GUIDELINES</button>
     <button @click="$router.push('/admin/dashboard/settings')">SETTINGS</button>
     <button @click="$router.push('/admin/dashboard/support')">SUPPORT PANEL</button>
   </div>
